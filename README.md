@@ -52,3 +52,35 @@ Paste the repository URL and hit ENTER
 ![CloneGitRepoInVSCode3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode3.png)
 Create a new folder which will be your local repo and select it
 ![CloneGitRepoInVSCode4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode4.png)
+This will start the cloning
+![CloneGitRepoInVSCode5](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode5.png)
+Click Open on the new pop-up window
+![CloneGitRepoInVSCode6](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode6.png)
+And you have to trust the authors to continue working on it
+![CloneGitRepoInVSCode7](https://github.com/eh-ciellos/template/blob/main/images/CloneGitRepoInVSCode7.png)
+Now you can see the files in the repo
+Execute .AL-Go\localDevEnv.ps1 as below to create your 1st BC container
+![ExecLocalDevEnvPS1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ExecLocalDevEnvPS1.png)
+You will be asked to enter the name of the container. Enter a name and hit ENTER
+This container can be used to download symbols/publish your extension(Test your code before commiting to remote repo)
+You can also update the launch.json to include a SaaS sandbox environment
+Check this Microsoft documentation on how to create it
+https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-json-launch-file
+
+When you need to add a change to your code, it is suggested to create a new branch and commit your changes there. The example below is just adding records to the .gitignore just to give the idea:
+![ModifyGitignore1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore1.png)
+![ModifyGitignore2](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore2.png)
+![ModifyGitignore3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore3.png)
+![ModifyGitignore4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore4.png)
+![ModifyGitignore5](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore5.png)
+![ModifyGitignore6](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore6.png)
+![ModifyGitignore7](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore7.png)
+![OpenGitRepoInVSCode1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/OpenGitRepoInVSCode1.png)
+![PR1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR1.png)
+![PR2](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR2.png)
+![PR3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR3.png)
+![PR4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR4.png)
+![PR5](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR5.png)
+![PR6](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR6.png)
+![PR7](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR7.png)
+![PR8](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR8.png)
