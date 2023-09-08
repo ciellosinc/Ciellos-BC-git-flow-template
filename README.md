@@ -44,3 +44,11 @@ https://docs.docker.com/desktop/install/windows-install/
 
 ## Clone your repo from VSCode as below:
 ![Clone from GitHub](https://github.com/eh-ciellos/template/blob/main/images/CloneFromGitHub.png)
+Open a new VSCode window and clone the repository locally. (You can also use the command line to clone the repository.)
+![CloneGitRepoInVSCode1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode1.png)
+Or you can do it via CTRL+Shift+P and type Git: Clone
+![CloneGitRepoInVSCode2](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode2.png)
+Paste the repository URL and hit ENTER
+![CloneGitRepoInVSCode3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode3.png)
+Create a new folder which will be your local repo and select it
+![CloneGitRepoInVSCode4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode4.png)
