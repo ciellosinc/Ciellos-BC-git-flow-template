@@ -43,3 +43,4 @@ Invoke-Expression "& '$vsCodeExec' --install-extension $_ --force"
 https://docs.docker.com/desktop/install/windows-install/
 
 ## Clone your repo from VSCode as below:
+![Clone from GitHub](https://github.com/eh-ciellos/template/blob/main/images/CloneFromGitHub.png)
