@@ -1,4 +1,77 @@
-# Prerequisites for Docker on Windows
+# Table of Contents
+
+- 1. [AL-Go-Git Flow](#1-git-flow)
+   - 1.1. [Branching Strategy](#11-branching-strategy)
+   - 1.2. [Flow Steps](#12-flow-steps)
+
+- 2. [Prerequisites for Docker on Windows](#2-prerequisites-for-docker-on-windows)
+   - 2.1. [Install the required Windows Features for Docker](#21-install-the-required-windows-features-for-docker)
+   -  2.2. [Install Docker as in the below guide](#22-install-docker-as-in-the-below-guide)
+   -  2.3. [Clone your repo from VSCode as below](#23-clone-your-repo-from-vscode-as-below)
+
+#
+
+# 1. AL-Go-Git Flow
+
+## 1.1. Branching Strategy
+
+In Git Flow, a well-defined branching strategy helps manage the development process efficiently. The key branches in Git Flow are:
+
+- **Main Branch:** Represents the latest code.
+- **Feature Branches:** Created for developing new features.
+- **Release Branches:** Used to prepare for a new release.
+- **Hotfix Branches:** Created to fix critical issues in the released code.
+
+![Git Flow Branching Strategy](path/to/your/image.png)
+
+## 1.2. Flow Steps
+
+1. **Create Feature Branch:**
+   - Create a feature branch from `main` where all development takes place.
+
+2. **Deploy to Test Environment:**
+   - Deploy the `.app` from the feature branch to the Test Environment for development testing.
+
+3. **Pull Request to Main:**
+   - Create a pull request from the feature branch to `main`.
+
+4. **Pull Request Build and Approval:**
+   - Trigger a build for the pull request.
+   - Seek necessary approvals.
+   
+   - [ ] If approved, proceed to step 5.
+   - [ ] If not approved, go back to the feature branch, fix issues, and repeat steps 3-4.
+
+5. **Merge to Main:**
+   - Merge the feature branch into `main`.
+
+6. **CI/CD to UAT Environment:**
+   - Set up Continuous Integration/Continuous Deployment (CI/CD) from `main` to deploy to the UAT Environment.
+
+7. **Test in UAT:**
+   - Perform testing in the UAT Environment.
+
+   - [ ] If testing is successful, proceed to step 8.
+   - [ ] If issues are found, go back to the feature branch, fix, and repeat steps 3-6.
+
+8. **Create Release Branch:**
+   - Create a release branch from `main`.
+   - Increase the version for the release.
+
+9. **Publish to AppSource:**
+   - Publish the release to AppSource.
+
+10. **Delete Feature Branch:**
+    - Once the feature is successfully merged and released, delete the feature branch.
+
+11. **Bug Discovery:**
+    - If a bug is discovered, create a hotfix branch from `main`.
+
+Feel free to customize the text or add any specific details as needed for your workflow.
+
+
+
+# 2. Prerequisites for Docker on Windows
 
 Before you can use Docker on Windows, you need to ensure that your system meets certain prerequisites:
 
@@ -13,7 +86,7 @@ Before you can use Docker on Windows, you need to ensure that your system meets 
 
 The following PowerShell code should be executed line by line (F8) but can also be executed as a block (F5).
 
-## Install the required Windows Features for Docker
+## 2.1. Install the required Windows Features for Docker
 
 ```powershell
 #Install the required Windows Features for Docker
@@ -23,6 +96,8 @@ Enable-WindowsOptionalFeature -Online -FeatureName $("Microsoft-Hyper-V", "Conta
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+#Set Chocolatey Safe Switch
+choco feature enable -n allowGlobalConfirmation
 
 #Use Choco
 #Install Git
@@ -39,10 +114,9 @@ $extensions | ForEach-Object {
 Invoke-Expression "& '$vsCodeExec' --install-extension $_ --force"
 }
 ```
-## Install Docker as in the below guide
-https://docs.docker.com/desktop/install/windows-install/
-
-## Clone your repo from VSCode as below:
+## 2.2. Install Docker as in the below guide
+[Install Docker Desktop - Windows](https://docs.docker.com/desktop/install/windows-install/)
+## 2.3. Clone your repo from VSCode as below:
 ![Clone from GitHub](https://github.com/eh-ciellos/template/blob/main/images/CloneFromGitHub.png)
 Open a new VSCode window and clone the repository locally. (You can also use the command line to clone the repository.)
 ![CloneGitRepoInVSCode1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode1.png)
