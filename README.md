@@ -22,7 +22,7 @@ In Git Flow, a well-defined branching strategy helps manage the development proc
 - **Release Branches:** Used to prepare for a new release.
 - **Hotfix Branches:** Created to fix critical issues in the released code.
 
-![Git Flow Branching Strategy](path/to/your/image.png)
+![Git Flow Branching Strategy](https://github.com/eh-ciellos/template/blob/main/images/algo_git_flow.png)
 
 ## 1.2. Flow Steps
 
