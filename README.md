@@ -3,6 +3,11 @@
 - 1. [AL-Go-Git Flow](#1-git-flow)
    - 1.1. [Branching Strategy](#11-branching-strategy)
    - 1.2. [Flow Steps](#12-flow-steps)
+   - 1.3. [Environments](#13-environments)
+      - 1.3.1. [Development Environment](#131-development-environment)
+      - 1.3.2. [Test Environment](#132-test-environment)
+      - 1.3.3. [UAT Environment](#133-uat-environment)
+      - 1.3.4. [Production Environment](#134-production-environment)
 
 - 2. [Prerequisites for Docker on Windows](#2-prerequisites-for-docker-on-windows)
    - 2.1. [Install the required Windows Features for Docker](#21-install-the-required-windows-features-for-docker)
@@ -21,6 +26,43 @@ In Git Flow, a well-defined branching strategy helps manage the development proc
 - **Feature Branches:** Created for developing new features.
 - **Release Branches:** Used to prepare for a new release.
 - **Hotfix Branches:** Created to fix critical issues in the released code.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant F as FeatureBranches
+    participant M as MainBranch
+    participant H as HotfixBranches
+    participant R as ReleaseBranches
+
+    loop  
+      M->>F: feature/1234-TaskDescription where 1234 is DevOps WorkItem nr
+      F-->>F: Commit format: #35;1234-TaskDescription
+      F-->>F: Push to remote
+      F->>M: Pull Request to Main
+      M->>F: if not successful -> Fix issues and repeat steps 3-4
+      F->>M: if PR Build and Approval successful -> Merge to Main
+
+    loop
+        M->>M: Automatic CI/CD to UAT Environment
+        M->>M: Test in UAT Environment
+        M->>F: if Tests not successful -> Fix issues and repeat steps 3-4
+        M->>R: if successful -> Create Release including its Branch and Increasing Version
+    end
+    end
+
+    loop
+        activate F
+        R-xF: After Publishing to AppSource Delete Feature Branch
+        deactivate F
+        Note left of R: Bug Discovered!
+        R->>H: if Bug Discovery -> Create Hotfix Branch
+        H->>H: Fix Bug
+        H->>R: Create PR:Merge to that ReleaseBranch
+        H->>M: Create PR:Merge to Main
+    end
+    
+```
 
 ![Git Flow Branching Strategy](https://github.com/eh-ciellos/template/blob/main/images/algo_git_flow.png)
 
