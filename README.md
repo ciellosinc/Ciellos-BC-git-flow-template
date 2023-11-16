@@ -9,10 +9,11 @@
       - 1.3.3. [UAT Environment](https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT)
       - 1.3.4. [Production Environment](https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD)
 
-- 2. [Prerequisites for Docker on Windows](#2-prerequisites-for-docker-on-windows)
-   - 2.1. [Install the required Windows Features for Docker](#21-install-the-required-windows-features-for-docker)
-   -  2.2. [Install Docker as in the below guide](#22-install-docker-as-in-the-below-guide)
-   -  2.3. [Clone your repo from VSCode as below](#23-clone-your-repo-from-vscode-as-below)
+- 2. [Prerequisites for your local physical working station](https://github.com/eh-ciellos/template/blob/85ee1c9baa27c869389fd546746b495ea9d68f85/DeveloperLocalSetup.md)
+   - 2.1. [Prerequisites for Docker on Windows](#21-prequisites-for-docker-on-windows)
+   - 2.2. [Install the required Windows Features for Docker](#21-install-the-required-windows-features-for-docker)
+   -  2.3. [Install Docker as in the below guide](#22-install-docker-as-in-the-below-guide)
+   -  2.4. [Clone your repo from VSCode as below](#23-clone-your-repo-from-vscode-as-below)
 
 #
 
