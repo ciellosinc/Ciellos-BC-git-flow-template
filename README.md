@@ -31,41 +31,41 @@ In Git Flow, a well-defined branching strategy helps manage the development proc
 ```mermaid
 sequenceDiagram
     autonumber
-    participant F as FeatureBranches
-    participant M as MainBranch
-    participant H as HotfixBranches
-    participant R as ReleaseBranches
+    participant F as Feature Branches
+    participant M as Main Branch
+    participant H as Hotfix Branches (Optional)
+    participant R as Release Branches
 
     loop  
       M->>F: feature/1234-TaskDescription where 1234 is DevOps WorkItem nr
       F-->>F: Commit format: #35;1234-TaskDescription
       F-->>F: Push to remote
+      F-->>F: Developer makes a test
       F->>M: Pull Request to Main
       M->>F: if not successful -> Fix issues and repeat steps 3-4
       F->>M: if PR Build and Approval successful -> Merge to Main
 
     loop
         M->>M: Automatic CI/CD to UAT Environment
-        M->>M: Test in UAT Environment
+        M->>M: QA Test in UAT Environment
         M->>F: if Tests not successful -> Fix issues and repeat steps 3-4
         M->>R: if successful -> Create Release including its Branch and Increasing Version
+        F--xF: Delete Feature branch
     end
     end
 
     loop
         activate F
-        R-xF: After Publishing to AppSource Delete Feature Branch
         deactivate F
         Note left of R: Bug Discovered!
         R->>H: if Bug Discovery -> Create Hotfix Branch
         H->>H: Fix Bug
         H->>R: Create PR:Merge to that ReleaseBranch
         H->>M: Create PR:Merge to Main
+        H--xH: Delete Hotfix branch
     end
     
 ```
-
-![Git Flow Branching Strategy](https://github.com/eh-ciellos/template/blob/main/images/algo_git_flow.png)
 
 ## 1.2. Flow Steps
 
