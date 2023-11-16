@@ -50,44 +50,47 @@ Invoke-Expression "& '$vsCodeExec' --install-extension $_ --force"
 ## 2.3. Install Docker as in the below guide
 [Install Docker Desktop - Windows](https://docs.docker.com/desktop/install/windows-install/)
 ## 2.4. Clone your repo from VSCode as below:
-![Clone from GitHub](https://github.com/eh-ciellos/template/blob/main/images/CloneFromGitHub.png)
+![Clone from GitHub](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneFromGitHub.png)
 Open a new VSCode window and clone the repository locally. (You can also use the command line to clone the repository.)
-![CloneGitRepoInVSCode1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode1.png)
+![CloneGitRepoInVSCode1](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode1.png)
 Or you can do it via CTRL+Shift+P and type Git: Clone
-![CloneGitRepoInVSCode2](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode2.png)
+![CloneGitRepoInVSCode2](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode2.png)
 Paste the repository URL and hit ENTER
-![CloneGitRepoInVSCode3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode3.png)
+![CloneGitRepoInVSCode3](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode3.png)
 Create a new folder which will be your local repo and select it
-![CloneGitRepoInVSCode4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode4.png)
+![CloneGitRepoInVSCode4](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode4.png)
 This will start the cloning
-![CloneGitRepoInVSCode5](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode5.png)
+![CloneGitRepoInVSCode5](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode5.png)
 Click Open on the new pop-up window
-![CloneGitRepoInVSCode6](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/CloneGitRepoInVSCode6.png)
+![CloneGitRepoInVSCode6](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode6.png)
 And you have to trust the authors to continue working on it
-![CloneGitRepoInVSCode7](https://github.com/eh-ciellos/template/blob/main/images/CloneGitRepoInVSCode7.png)
+![CloneGitRepoInVSCode7](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/CloneGitRepoInVSCode7.png)
 Now you can see the files in the repo
+
+## 2.5. Creating you local dev environment (BC Container)
 Execute .AL-Go\localDevEnv.ps1 as below to create your 1st BC container
-![ExecLocalDevEnvPS1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ExecLocalDevEnvPS1.png)
+![ExecLocalDevEnvPS1](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ExecLocalDevEnvPS1.png)
 You will be asked to enter the name of the container. Enter a name and hit ENTER
-This container can be used to download symbols/publish your extension(Test your code before commiting to remote repo)
+This container can be used to download symbols/publish your extension(Test your code before committing to remote repo)
 You can also update the launch.json to include a SaaS sandbox environment
 Check this Microsoft documentation on how to create it
 https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-json-launch-file
 
-When you need to add a change to your code, it is suggested to create a new branch and commit your changes there. The example below is just adding records to the .gitignore just to give the idea:
-![ModifyGitignore1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore1.png)
-![ModifyGitignore2](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore2.png)
-![ModifyGitignore3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore3.png)
-![ModifyGitignore4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore4.png)
-![ModifyGitignore5](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore5.png)
-![ModifyGitignore6](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore6.png)
-![ModifyGitignore7](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/ModifyGitignore7.png)
+## 2.6. Working on your Feature branch
+When you need to add a change to your code, it is required to create a new feature/branch and commit your changes there. The example below is just adding records to the .gitignore just to give the idea:
+![ModifyGitignore1](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore1.png)
+![ModifyGitignore2](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore2.png)
+![ModifyGitignore3](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore3.png)
+![ModifyGitignore4](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore4.png)
+![ModifyGitignore5](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore5.png)
+![ModifyGitignore6](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore6.png)
+![ModifyGitignore7](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/ModifyGitignore7.png)
 ![OpenGitRepoInVSCode1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/OpenGitRepoInVSCode1.png)
-![PR1](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR1.png)
-![PR2](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR2.png)
-![PR3](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR3.png)
-![PR4](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR4.png)
-![PR5](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR5.png)
-![PR6](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR6.png)
-![PR7](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR7.png)
-![PR8](https://github.com/eh-ciellos/template/blob/7f9d1adbd14cba08d41fc4b44c4f3cd7249ae661/images/PR8.png)
+![PR1](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR1.png)
+![PR2](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR2.png)
+![PR3](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR3.png)
+![PR4](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR4.png)
+![PR5](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR5.png)
+![PR6](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR6.png)
+![PR7](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR7.png)
+![PR8](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/.images/PR8.png)

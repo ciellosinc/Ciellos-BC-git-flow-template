@@ -1,113 +1,45 @@
+# Project description 
+This is a template for a Business Central project. <br>This project has x nr of apps and is developed by y nr of developers. <br>It is managed by a project manager and a technical architect. <br>The project is developed by a team of developers and is deployed to the following environments: Development, Test, UAT and Production. The project is managed using the Kanban board. The project is based on AL-Go Template which automates the build and deployment process, making it easier for developers to focus on the development and reaching the end goal of publishing to AppSource
+
+- Team:
+  - PM - [Toufic Rousse](toufic.rousse@ciellos.com),
+  - TA - [Toufic Rousse](toufic.rousse@ciellos.com), 
+  - FC - [Toufic Rousse](toufic.rousse@ciellos.com),
+  - DEV - [Toufic Rousse](toufic.rousse@ciellos.com),
+  - DevOps - [Toufic Rousse](toufic.rousse@ciellos.com)
+- Object Ranges 
+  - App1 - {
+      "from": 7XXXXXXX,
+      "to": 7XXXXXXY
+    }
+  - App2 - {
+      "from": 7XXXXXXX,
+      "to": 7XXXXXXY
+    }
+- Object Prefix (Affix)
+  - SKG
+- [Environments](https://github.com/eh-ciellos/template/blob/e01ee857b4a34d8378db43f87660ba206064096c/ENVIRONMENTS.md)
+- [Kanban board](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template/_boards/board/t/Ciellos%20BC%20git%20flow%20Template%20Team/Stories)
+<br>
+<br>
+Below you can find the table of contents pointing to all the needed guides for this project:
+<br>
+
+#
 # Table of Contents
 
-- 1. [AL-Go-Git Flow](#1-git-flow)
-   - 1.1. [Branching Strategy](#11-branching-strategy)
-   - 1.2. [Flow Steps](#12-flow-steps)
-   - 1.3. [Environments](https://github.com/eh-ciellos/template/blob/e01ee857b4a34d8378db43f87660ba206064096c/ENVIRONMENTS.md)
+- 1. [AL-Go-Git Flow](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md#1-al-go-git-flow)
+   - 1.1. [Branching Strategy](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md#11-branching-strategy)
+   - 1.2. [Flow Steps](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md#12-flow-steps)
+   - 1.3. [Environments](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/ENVIRONMENTS.md#environments)
       - 1.3.1. [Development Environment](https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/DEV)
       - 1.3.2. [Test Environment](https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST)
       - 1.3.3. [UAT Environment](https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT)
       - 1.3.4. [Production Environment](https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD)
 
-- 2. [Prerequisites for your local physical working station](https://github.com/eh-ciellos/template/blob/85ee1c9baa27c869389fd546746b495ea9d68f85/DeveloperLocalSetup.md)
-   - 2.1. [Prerequisites for Docker on Windows](https://github.com/eh-ciellos/template/blob/main/DeveloperLocalSetup.md#21-prerequisites-for-docker-on-windows)
-   - 2.2. [Install the required Windows Features for Docker](https://github.com/eh-ciellos/template/blob/main/DeveloperLocalSetup.md#22-install-the-required-windows-features-for-docker)
-   -  2.3. [Install Docker as in the below guide](https://github.com/eh-ciellos/template/blob/main/DeveloperLocalSetup.md#23-install-docker-as-in-the-below-guide)
-   -  2.4. [Clone your repo from VSCode as below](https://github.com/eh-ciellos/template/blob/main/DeveloperLocalSetup.md#24-clone-your-repo-from-vscode-as-below)
-
+- 2. [Local development setup](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md)
+   - 2.1. [Prerequisites for Docker on Windows](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#21-prerequisites-for-docker-on-windows)
+   - 2.2. [Install the required Windows Features for Docker](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#22-install-the-required-windows-features-for-docker)
+   -  2.3. [Install Docker as in the below guide](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#23-install-docker-as-in-the-below-guide)
+   -  2.4. [Clone your repo from VSCode as below](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#24-clone-your-repo-from-vscode-as-below)
 #
-
-# 1. AL-Go-Git Flow
-
-## 1.1. Branching Strategy
-
-In Git Flow, a well-defined branching strategy helps manage the development process efficiently. The key branches in Git Flow are:
-
-- **Main Branch:** Represents the latest code.
-- **Feature Branches:** Created for developing new features.
-- **Release Branches:** Used to prepare for a new release.
-- **Hotfix Branches:** Created to fix critical issues in the released code.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant F as Feature Branches
-    participant M as Main Branch
-    participant H as Hotfix Branches (Optional)
-    participant R as Release Branches
-
-    loop  
-      M->>F: feature/1234-TaskDescription where 1234 is DevOps WorkItem nr
-      F-->>F: Commit format: #35;1234-TaskDescription
-      F-->>F: Push to remote
-      F-->>F: Developer makes a test
-      F->>M: Pull Request to Main
-      M->>F: if not successful -> Fix issues and repeat steps 3-4
-      F->>M: if PR Build and Approval successful -> Merge to Main
-
-    loop
-        M->>M: Automatic CI/CD to UAT Environment
-        M->>M: QA Test in UAT Environment
-        M->>F: if Tests not successful -> Fix issues and repeat steps 3-4
-        M->>R: if successful -> Create Release including its Branch and Increasing Version
-        F--xF: Delete Feature branch
-    end
-    end
-
-    loop
-        activate F
-        deactivate F
-        Note left of R: Bug Discovered!
-        R->>H: if Bug Discovery -> Create Hotfix Branch
-        H->>H: Fix Bug
-        H->>R: Create PR:Merge to that ReleaseBranch
-        H->>M: Create PR:Merge to Main
-        H--xH: Delete Hotfix branch
-    end
-    
-```
-
-## 1.2. Flow Steps
-
-1. **Create Feature Branch:**
-   - Create a feature branch from `main` where all development takes place.
-
-2. **Deploy to Test Environment:**
-   - Deploy the `.app` from the feature branch to the Test Environment for development testing.
-
-3. **Pull Request to Main:**
-   - Create a pull request from the feature branch to `main`.
-
-4. **Pull Request Build and Approval:**
-   - Trigger a build for the pull request.
-   - Seek necessary approvals.
-   
-   - [ ] If approved, proceed to step 5.
-   - [ ] If not approved, go back to the feature branch, fix issues, and repeat steps 3-4.
-
-5. **Merge to Main:**
-   - Merge the feature branch into `main`.
-
-6. **CI/CD to UAT Environment:**
-   - Set up Continuous Integration/Continuous Deployment (CI/CD) from `main` to deploy to the UAT Environment.
-
-7. **Test in UAT:**
-   - Perform testing in the UAT Environment.
-
-   - [ ] If testing is successful, proceed to step 8.
-   - [ ] If issues are found, go back to the feature branch, fix, and repeat steps 3-6.
-
-8. **Create Release Branch:**
-   - Create a release branch from `main`.
-   - Increase the version for the release.
-
-9. **Publish to AppSource:**
-   - Publish the release to AppSource.
-
-10. **Delete Feature Branch:**
-    - Once the feature is successfully merged and released, delete the feature branch.
-
-11. **Bug Discovery:**
-    - If a bug is discovered, create a hotfix branch from `main`.
-
-Feel free to customize the text or add any specific details as needed for your workflow.
