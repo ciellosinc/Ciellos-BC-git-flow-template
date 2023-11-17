@@ -1,8 +1,10 @@
 - 2. [Prerequisites for your local physical working station](#2-prerequisites-for-docker-on-windows)
    - 2.1. [Prerequisites for Docker on Windows](#21-prequisites-for-docker-on-windows)
-   - 2.2. [Install the required Windows Features for Docker](#21-install-the-required-windows-features-for-docker)
-   -  2.3. [Install Docker as in the below guide](#22-install-docker-as-in-the-below-guide)
-   -  2.4. [Clone your repo from VSCode as below](#23-clone-your-repo-from-vscode-as-below)
+   - 2.2. [Install the required Windows Features for Docker](#22-install-the-required-windows-features-for-docker)
+   -  2.3. [Install Docker as in the below guide](#23-install-docker-as-in-the-below-guide)
+   -  2.4. [Clone your repo from VSCode as below](#24-clone-your-repo-from-vscode-as-below)
+   -  2.5. [Creating you local dev environment (BC Container)](#25-creating-you-local-dev-environment-bc-container)
+   -  2.6. [Working on your Feature branch](#26-working-on-your-feature-branch)
 
 ## 2.1. Prerequisites for Docker on Windows
 

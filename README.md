@@ -42,4 +42,6 @@ Below you can find the table of contents pointing to all the needed guides for t
    - 2.2. [Install the required Windows Features for Docker](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#22-install-the-required-windows-features-for-docker)
    -  2.3. [Install Docker as in the below guide](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#23-install-docker-as-in-the-below-guide)
    -  2.4. [Clone your repo from VSCode as below](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#24-clone-your-repo-from-vscode-as-below)
+   -  2.5. [Creating you local dev environment (BC Container)](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#25-creating-you-local-dev-environment-bc-container)
+   -  2.6. [Working on your Feature branch](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#26-working-on-your-feature-branch)
 #
