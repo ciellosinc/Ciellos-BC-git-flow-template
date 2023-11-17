@@ -1,3 +1,4 @@
+[![Board Status](https://ciellos.visualstudio.com/6f789900-0db7-46c9-9b00-84e46c577012/12d40337-33b9-431b-8f86-a52195352ee1/_apis/work/boardbadge/7c8cf15d-7ca5-45f8-9a46-e6cb22409844)](https://ciellos.visualstudio.com/6f789900-0db7-46c9-9b00-84e46c577012/_boards/board/t/12d40337-33b9-431b-8f86-a52195352ee1/Microsoft.RequirementCategory)
 # Project description 
 This is a template for a Business Central project. <br>This project has x nr of apps and is developed by y nr of developers. <br>It is managed by a project manager and a technical architect. <br>The project is developed by a team of developers and is deployed to the following environments: Development, Test, UAT and Production. The project is managed using the Kanban board. The project is based on AL-Go Template which automates the build and deployment process, making it easier for developers to focus on the development and reaching the end goal of publishing to AppSource
 
