@@ -29,12 +29,12 @@ The project is managed using the Kanban board.
 - ABC
  
 ## :computer: Environments
-| Environment | Description | Link |
-|:------------|:---------------------------|:-------------------------------------------------------------------------------|
-| `DEV`       | Development Environment    | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/DEV  |
-| `Sandbox`   | Test Environment           | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST |
-| `UAT`       | User Acceptance Test Env.  | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  |
-| `PROD`      | Production Environment     | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD |
+| Environment |  Link |
+|:------------|:-------------------------------------------------------------------------------|
+| `DEV`       | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/DEV  |
+| `Sandbox`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST |
+| `UAT`       | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  |
+| `PROD`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD |
 
 Please find how to set up a [local `DEV` environment](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md).  
 Please find how to set up a [trial/temporary SaaS environment]().  
