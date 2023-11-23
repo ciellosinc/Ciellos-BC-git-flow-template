@@ -15,7 +15,16 @@ The project is managed using the Kanban board.
 | **DEV**       | *Developer*              | Giovani Johnston, Addison Hermiston
 | **SE/DevOps** | *System Engineer/DevOps* | Larry Williams
 
-## :triangular_ruler: Object Ranges
+## :unicorn: Application
+This Business Central Application has the following parameters:
+- **Name**: "Test Extension"  
+- **Extension Type**: [Per-tenant extension (PTE)](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#per-tenant-extensions-ptes)  
+- **Extension Type**: [AppSource or Global app](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#global-apps)
+- **Business Central Version**: BC 23
+
+*Please use one code repository per Extension*
+
+### :triangular_ruler: Object Ranges
 - App1 - {
     "from": 7XXXXXXX,
     "to": 7XXXXXXY
@@ -25,20 +34,29 @@ The project is managed using the Kanban board.
     "to": 7XXXXXXY
   }
 
-## :date: Object Prefix (Affix)
+### :date: Object Prefix (Affix)
 - ABC
- 
-## :computer: Environments
-| Environment |  Link |
-|:------------|:-------------------------------------------------------------------------------|
-| `DEV`       | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/DEV  |
-| `Sandbox`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST |
-| `UAT`       | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  |
-| `PROD`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD |
 
-Please find how to set up a [local `DEV` environment](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md).  
-Please find how to set up a [trial/temporary SaaS environment]().  
-Please find how to work with [Branches](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md).
+### :lollipop: Other BC Applications in use
+The customer is going to use the following extensions, including third-party ISV extensions:
+| Extension | Description | Link to download |
+|:----------|:------------|:-----------------|
+| Core solution | Customer Core Extension with essential code | https://github.com/ciellosinc/Ciellos-BC-git-flow-template
+| Master Data | Sync Master Data Data between instances | https://appsource.microsoft.com/en-us/marketplace/apps?search=master%20data&page=1&product=dynamics-365-business-central
+| Bank | Bank Integration | https://appsource.microsoft.com/en-us/marketplace/apps?search=bank&page=1&product=dynamics-365-business-central
+| Warehouse | WHS | https://appsource.microsoft.com/en-us/marketplace/apps?search=warehouse&page=1&product=dynamics-365-business-central
+
+## 🖥️ Environments
+| Environment |  Link                                                                          | Description |
+|:------------|:-------------------------------------------------------------------------------|-------------|
+| `DEV`       | Use local Docker-containers for development                                    | 
+| `Sandbox`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST | Internal Testing
+| `UAT`       | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
+| `PROD`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
+
+- Please find how to set up a [local `DEV` environment](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md).  
+- Please find how to set up [Environments](https://dev.azure.com/ciellos-bc/main/_wiki/wikis/Internal%20Wiki/109/Environments).  
+- Please find how to work with [Branches](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md).
 
 ## :microscope: Kanban board and Product Backlog
 [![Board Status](https://ciellos.visualstudio.com/6f789900-0db7-46c9-9b00-84e46c577012/12d40337-33b9-431b-8f86-a52195352ee1/_apis/work/boardbadge/7c8cf15d-7ca5-45f8-9a46-e6cb22409844)](https://ciellos.visualstudio.com/6f789900-0db7-46c9-9b00-84e46c577012/_boards/board/t/12d40337-33b9-431b-8f86-a52195352ee1/Microsoft.RequirementCategory)
@@ -52,17 +70,8 @@ Please find how to work with [Branches](https://github.com/ciellosinc/Ciellos-BC
 
 
 # :moyai: Best Practices and other helpful information
-Below, you can find the table of contents pointing to all the needed guides for this project:
+Below, you can find the table of contents pointing to all the needed guides for Business Central development:
 
-- 1. [AL-Go-Git Flow](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md#1-al-go-git-flow)
-   - 1.1. [Branching Strategy](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md#11-branching-strategy)
-   - 1.2. [Flow Steps](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md#12-flow-steps)
-
-- 2. [Local development setup](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md)
-   - 2.1. [Prerequisites for Docker on Windows](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#21-prerequisites-for-docker-on-windows)
-   - 2.2. [Install the required Windows Features for Docker](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#22-install-the-required-windows-features-for-docker)
-   -  2.3. [Install Docker as in the below guide](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#23-install-docker-as-in-the-below-guide)
-   -  2.4. [Clone your repo from VSCode as below](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#24-clone-your-repo-from-vscode-as-below)
-   -  2.5. [Creating you local dev environment (BC Container)](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#25-creating-you-local-dev-environment-bc-container)
-   -  2.6. [Working on your Feature branch](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md#26-working-on-your-feature-branch)
-
+- [Branches and git Flow](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md)
+- [Local development setup](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md)
+- [AL Development Best Practices](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/ALDevelopmentBestPractices.md)
