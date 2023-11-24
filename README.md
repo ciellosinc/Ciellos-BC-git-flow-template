@@ -1,4 +1,4 @@
-# Project name
+# Project name - Extension name
 ## :mega: General Information
 This is a template for a Business Central project. Please fill in this template. Specify real names, numbers and links.
 
