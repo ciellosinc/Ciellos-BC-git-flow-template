@@ -17,7 +17,7 @@ The project is managed using the Kanban board.
 
 ## :unicorn: Application
 This Business Central Application has the following parameters:
-- **Name**: "Test Extension"  
+- **Name**: "ABC Extension"  
 - **Extension Type**: [Per-tenant extension (PTE)](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#per-tenant-extensions-ptes)  
 - **Extension Type**: [AppSource or Global app](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#global-apps)
 - **Business Central Version**: BC 23
@@ -47,12 +47,12 @@ The customer is going to use the following extensions, including third-party ISV
 | Warehouse | WHS | https://appsource.microsoft.com/en-us/marketplace/apps?search=warehouse&page=1&product=dynamics-365-business-central
 
 ## 🖥️ Environments
-| Environment |  Link                                                                          | Description |
-|:------------|:-------------------------------------------------------------------------------|-------------|
-| `DEV`       | Use local Docker-containers for development                                    | 
-| `Sandbox`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST | Internal Testing
-| `UAT`       | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
-| `PROD`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
+| Environment | Branch      |  Link                                                                          | Description |
+|:------------|:------------|:-------------------------------------------------------------------------------|-------------|
+| `DEV`       | `feature/*` | Use local Docker-containers for development                                    | 
+| `Sandbox`   | `main`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST | Internal Testing
+| `UAT`       | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
+| `PROD`      | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
 
 - Please find how to set up a [local `DEV` environment](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md).  
 - Please find how to set up [Environments](https://dev.azure.com/ciellos-bc/main/_wiki/wikis/Internal%20Wiki/109/Environments).  
