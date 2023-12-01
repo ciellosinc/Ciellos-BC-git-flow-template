@@ -59,7 +59,7 @@ sequenceDiagram
         activate R
         H->>R: If test successful -> Create PR Merge it to Release
         activate M
-        H->>M: If test not successful -> Create PR Merge to Main
+        H->>M: If test successful -> Create PR Merge to Main
         deactivate R
         activate H
         H--xH: Delete Hotfix branch
