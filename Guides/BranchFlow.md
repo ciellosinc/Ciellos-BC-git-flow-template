@@ -120,8 +120,9 @@ sequenceDiagram
     - After successful merging and release, delete the `feature` branch.
 
 11. **Bug Discovery and Hotfix:**
-    - If a bug is discovered after release on the Production environment, create a `hotfix` branch from `release/thisrelease`.
+    - If a bug is discovered after release on the Production environment, create a `hotfix` branch from `release/thisrelease`. Use the same release version that is deployed to the Production environment.
     - Fix the bug, deploy to a test environment
     - Test the fix
-    - Merge changes back to the branches `release` and `main`. It is necessary to make PR to the `main` branch because we would like to save the fix for the next releases
+    - Merge changes back to the branches `release` and `main`. It is necessary to make PR and merge to the `main` branch because we would like to save the fix for the next releases
+    - Do not forget to delete the `hotifx` branch after moving changes to the `main` and `release` branches
 
