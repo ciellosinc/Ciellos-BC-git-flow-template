@@ -5,6 +5,7 @@
    -  2.4. [Clone your repo from VSCode as below](#24-clone-your-repo-from-vscode-as-below)
    -  2.5. [Creating you local dev environment (BC Container)](#25-creating-you-local-dev-environment-bc-container)
    -  2.6. [Working on your Feature branch](#26-working-on-your-feature-branch)
+   -  2.7. [Test for Artem]
 
 ## 2.1. Prerequisites for Docker on Windows
 
