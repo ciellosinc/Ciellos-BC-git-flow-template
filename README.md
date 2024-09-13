@@ -7,13 +7,14 @@ The project is managed using the Kanban board.
 <br />The project is based on the [AL-Go Template](https://github.com/microsoft/AL-Go), which automates the build and deployment process, making it easier for developers to focus on the development and reaching the end goal of publishing to AppSource.
 
 ## :steam_locomotive: Team
-| Role          | Description              | Full Name              |
-|:-------------:|:-------------------------|:-----------------------|
-| **PM**        | *Project Manager*        | Michelle Costello
-| **TA**        | *Technical Architect*    | Milo Langworth
-| **FC**        | *Functional Consultant*  | Abigail West
-| **DEV**       | *Developer*              | Giovani Johnston, Addison Hermiston
-| **SE/DevOps** | *System Engineer/DevOps* | Larry Williams
+| Role          | Description              | Full Name              | Notifications |
+|:-------------:|:-------------------------|:-----------------------|---------------|
+| **PM**        | *Project Manager*        | Michelle Costello      | Yes
+| **TA**        | *Technical Architect*    | Milo Langworth         | Yes
+| **FC**        | *Functional Consultant*  | Abigail West           | No
+| **DEV**       | *Developer*              | Giovani Johnston       | Yes
+| **DEV**       | *Developer*              | Addison Hermiston      | No
+| **SE/DevOps** | *System Engineer/DevOps* | Larry Williams         | Yes
 
 ## :unicorn: Application
 This Business Central Application has the following parameters:
@@ -49,7 +50,7 @@ The customer is going to use the following extensions, including third-party ISV
 ## 🖥️ Environments
 | Environment | Branch      |  Link                                                                          | Description |
 |:------------|:------------|:-------------------------------------------------------------------------------|-------------|
-| `DEV`       | `feature/*` | Use local Docker-containers for development                                    | 
+| `DEV`       | `feature/*` | Use local Docker-containers for development                                    | Dev box
 | `Sandbox`   | `main`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST | Internal Testing
 | `UAT`       | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
 | `PROD`      | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
