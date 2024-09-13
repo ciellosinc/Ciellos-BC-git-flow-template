@@ -1,20 +1,20 @@
 # Project name - Extension name
 ## :mega: General Information
-This is a template for a Business Central project. Please fill in this template. Specify real names, numbers and links.
+This is a template for a Business Central project. Please complete it. Specify real names, numbers, and links.
 
 The project is developed by a team of developers and is deployed to the following environments: Development, Test, UAT and Production. 
 The project is managed using the Kanban board. 
 <br />The project is based on the [AL-Go Template](https://github.com/microsoft/AL-Go), which automates the build and deployment process, making it easier for developers to focus on the development and reaching the end goal of publishing to AppSource.
 
 ## :steam_locomotive: Team
-| Role          | Description              | Full Name              | Notifications |
-|:-------------:|:-------------------------|:-----------------------|---------------|
-| **PM**        | *Project Manager*        | Michelle Costello      | Yes
-| **TA**        | *Technical Architect*    | Milo Langworth         | Yes
-| **FC**        | *Functional Consultant*  | Abigail West           | No
-| **DEV**       | *Developer*              | Giovani Johnston       | Yes
-| **DEV**       | *Developer*              | Addison Hermiston      | No
-| **SE/DevOps** | *System Engineer/DevOps* | Larry Williams         | Yes
+| Role          | Description              | Full Name              | E-Mail                        | Notifications |
+|:-------------:|:-------------------------|:-----------------------|-------------------------------|---------------|
+| **PM**        | *Project Manager*        | Michelle Costello      | mcostello@contoso.com         | Yes
+| **TA**        | *Technical Architect*    | Milo Langworth         | mlangworth@contoso.com        | Yes
+| **FC**        | *Functional Consultant*  | Abigail West           | abigail.west@contoso.com      | No
+| **DEV**       | *Developer*              | Giovani Johnston       | giovani.johnston@contoso.com  | Yes
+| **DEV**       | *Developer*              | Addison Hermiston      | addison.hermiston@contoso.com | No
+| **SE/DevOps** | *System Engineer/DevOps* | Larry Williams         | larry.williams@contoso.com    | Yes
 
 ## :unicorn: Application
 This Business Central Application has the following parameters:
@@ -64,6 +64,16 @@ The customer is going to use the following extensions, including third-party ISV
 
 - [Kanban board](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template/_boards/board/t/Ciellos%20BC%20git%20flow%20Template%20Team/Stories)
 - [Product Log](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template)
+
+
+## :cop: Pipelines and Automation
+| Pipeline Name        | Trigger on | Description |
+|----------------------|------------|-------------|
+| `CI/CD`              | on code push for branches: main, release, feature | Build, Build Power Platform, Deploy ALDoc, Deploy to environments, Deliver. </br> _Some steps may be skipped if they are not configured_
+| `Pull Request Build` | on PR for the main branch | Make Code Validation
+| `Test Next Minor`    | Weekly | Build the code against the Next Major version
+| `Test Next Major`    | Weekly and after each PR | Build the code against the Next Major version
+| `Create release`     | Manually only | Prepare release notes, Create Release, Upload Artifacts (NuGet, Storage, GitHub), Create Release Branch, Update Version Number
 
 
 ## :bell: Teams Channel
