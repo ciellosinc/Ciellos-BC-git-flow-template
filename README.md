@@ -66,7 +66,7 @@ The customer is going to use the following extensions, including third-party ISV
 - [Product Log](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template)
 
 
-## :cop: Pipelines and Automation
+## :passport_control: Pipelines and Automation
 | Pipeline Name        | Trigger on | Description |
 |----------------------|------------|-------------|
 | `CI/CD`              | on code push for branches: main, release, feature | Build, Build Power Platform, Deploy ALDoc, Deploy to environments, Deliver. </br> _Some steps may be skipped if they are not configured_
