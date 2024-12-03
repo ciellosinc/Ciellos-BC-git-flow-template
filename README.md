@@ -55,6 +55,7 @@ The customer is going to use the following extensions, including third-party ISV
 | `UAT`       | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
 | `PROD`      | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
 
+- Please check how to set the BC Environment AUTHCONTEXT as a Github Repository Secret [BC Environment Repo Secret](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/eh-ciellos-patch-1/Guides/AUTHCONTEXT.md).
 - Please find how to set up a [local `DEV` environment](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md).  
 - Please find how to set up [Environments](https://dev.azure.com/ciellos-bc/main/_wiki/wikis/Internal%20Wiki/109/Environments).  
 - Please find how to work with [Branches](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md).
