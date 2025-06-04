@@ -30,7 +30,7 @@ To enable code signing in your AL-Go project in GitHub, you'll need to set up an
     "subscriptionId": "YOUR_SUBSCRIPTION_ID",
     "tenantId": "YOUR_TENANT_ID"
   }
-  json```
+  ```
 
 ### 5. Permissions / Access Policies
 
