@@ -49,6 +49,7 @@ Example Azure CLI commands:
 az role assignment create --role "Key Vault Crypto User" --assignee <client-id> --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.KeyVault/vaults/<key-vault-name>"
 az role assignment create --role "Key Vault Certificate User" --assignee <client-id> --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.KeyVault/vaults/<key-vault-name>"
 az keyvault set-policy --name <key-vault-name> --object-id <object-id> --certificate-permissions get --key-permissions sign
+```
 
 ### 6. Configure GitHub AL-Go Workflows
 
