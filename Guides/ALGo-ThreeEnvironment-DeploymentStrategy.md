@@ -8,7 +8,7 @@ This guide extends the [AL-Go Git Flow branching strategy](./BranchFlow.md) with
 | --- | --- | --- |
 | **TEST** | Push to `feature/*` or `hotfix/*` | Automatic |
 | **UAT** | Push to `main` or `release/*` | Automatic |
-| **Production** | Manual trigger from `main` or `release/*` | Developer / Release manager |
+| **Production** | Manual trigger from `main` or `release/*` | Technical Architect / DevOps / Release Manager |
 
 The key insight: TEST gets code **before** it merges to `main`, so QA sees the candidate in isolation. UAT gets code **after** merge, so it always reflects the integrated state. Production only gets code when someone consciously decides to ship — always triggered manually, from either `main` or an active `release/*` branch.
 
@@ -179,7 +179,7 @@ AL-Go resolves the secret by name regardless of level — both approaches work. 
 
 ### Standard feature release
 
-```
+```text
 feature/* → PR → main → CICD → UAT auto-deploys
                        ↓
                 CreateRelease (from main)
@@ -206,7 +206,7 @@ gh workflow run PublishToEnvironment.yaml --ref main --field appVersion=latest -
 
 ### Hotfix release
 
-```
+```text
 hotfix/* (from release/x.y.z) → CICD → TEST
 PR → release/x.y.z → CICD → UAT
 PR → main → CICD → UAT
@@ -246,7 +246,7 @@ These rules were discovered through systematic testing and each one has a docume
 | Rule | If broken |
 | --- | --- |
 | `doNotPublishApps: false` | Artifacts never uploaded → all deploy jobs silently skip with no error |
-| Do not add a top-level `environments: [...]` array | Adding one makes all environments visible on all branches — ConditionalSettings is bypassed entirely |
+| Do not mix `environments: [...]` array with registered GitHub Environments | The `environments` array is the correct mechanism for free GitHub orgs where GitHub Environments are unavailable (private repos on free plans). If GitHub Environments **are** registered in Settings → Environments, do not also add the `environments` array — AL-Go will merge both lists and ConditionalSettings branch gating is bypassed for the array-defined entries |
 | `Branches` key required inside every `DeployTo<env>` block | Missing = empty allowlist = environment excluded from CICD matrix even with `ContinuousDeployment: true` |
 | `excludeEnvironments: ["<Test-Env>"]` in the main/release block | TEST environment re-deploys on every main push (from the registered GitHub Environment) |
 | `CreateRelease` and `PublishToEnvironment` from the same branch | Asset names mismatch → `PublishToEnvironment` finds 0 artifacts, reports "success", nothing deployed |
@@ -270,7 +270,7 @@ Before applying this configuration to a production repository, verify all scenar
 | T07 | `PublishToEnvironment` from `main` → Production | `EnvironmentCount=1`, Deploy to Production succeeds |
 
 > **How to verify routing**: Open the `Initialization` job in any CICD run and check for `Environments found: ...` and `EnvironmentCount=N`. This is the authoritative routing evidence — it shows exactly which environments are in the deploy matrix and why.
-
+>
 > **On wrong-branch publish (T06)**: AL-Go reports overall workflow "success" even when `EnvironmentCount=0`. The deploy is silently skipped. Always check `EnvironmentCount` in the Initialization log when you suspect a wrong-branch publish.
 
 ---
