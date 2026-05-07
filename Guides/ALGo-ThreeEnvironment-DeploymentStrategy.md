@@ -8,9 +8,9 @@ This guide extends the [AL-Go Git Flow branching strategy](./BranchFlow.md) with
 | --- | --- | --- |
 | **TEST** | Push to `feature/*` or `hotfix/*` | Automatic |
 | **UAT** | Push to `main` or `release/*` | Automatic |
-| **Production** | Manual trigger | Developer / Release manager |
+| **Production** | Manual trigger from `main` or `release/*` | Developer / Release manager |
 
-The key insight: TEST gets code **before** it merges to `main`, so QA sees the candidate in isolation. UAT gets code **after** merge, so it always reflects the integrated state. Production only gets code when someone consciously decides to ship.
+The key insight: TEST gets code **before** it merges to `main`, so QA sees the candidate in isolation. UAT gets code **after** merge, so it always reflects the integrated state. Production only gets code when someone consciously decides to ship — always triggered manually, from either `main` or an active `release/*` branch.
 
 ---
 
@@ -166,7 +166,12 @@ Create three GitHub Environments in your repository (Settings → Environments):
 
 ### 2. Auth context secrets
 
-For each environment, create the auth context secret inside that environment's secrets (not repo-level). See [AUTHCONTEXT.md](./AUTHCONTEXT.md) for generation steps. Rotate every 90 days.
+For each environment, create the auth context secret using one of two approaches:
+
+- **Environment-level secret** (recommended): Settings → Environments → `<env-name>` → Add secret. Scoped to jobs deploying to that specific environment — better security isolation.
+- **Repository-level secret**: Settings → Secrets and variables → Actions → New repository secret. Available to all jobs. Simpler setup; use if environment-level is not required.
+
+AL-Go resolves the secret by name regardless of level — both approaches work. See [AUTHCONTEXT.md](./AUTHCONTEXT.md) for the secret generation steps (that guide shows repository-level creation). Rotate every 90 days.
 
 ---
 
@@ -181,6 +186,8 @@ feature/* → PR → main → CICD → UAT auto-deploys
                        ↓
                 PublishToEnvironment (from main → Production)
 ```
+
+> **Same-branch rule applies here too**: both `CreateRelease` and `PublishToEnvironment` run from `main`. For hotfixes you can run both from `release/x.y.z` instead — see the hotfix section below.
 
 **Commands:**
 
@@ -239,7 +246,7 @@ These rules were discovered through systematic testing and each one has a docume
 | Rule | If broken |
 | --- | --- |
 | `doNotPublishApps: false` | Artifacts never uploaded → all deploy jobs silently skip with no error |
-| No top-level `environments: [...]` array | All environments deploy from all branches — ConditionalSettings bypassed entirely |
+| Do not add a top-level `environments: [...]` array | Adding one makes all environments visible on all branches — ConditionalSettings is bypassed entirely |
 | `Branches` key required inside every `DeployTo<env>` block | Missing = empty allowlist = environment excluded from CICD matrix even with `ContinuousDeployment: true` |
 | `excludeEnvironments: ["<Test-Env>"]` in the main/release block | TEST environment re-deploys on every main push (from the registered GitHub Environment) |
 | `CreateRelease` and `PublishToEnvironment` from the same branch | Asset names mismatch → `PublishToEnvironment` finds 0 artifacts, reports "success", nothing deployed |
