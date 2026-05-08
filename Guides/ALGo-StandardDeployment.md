@@ -36,7 +36,7 @@ The key insight: feature branches **build and validate but do not deploy**. Code
 
 ```mermaid
 flowchart LR
-    F["feature/*\nhotfix/*"] -->|PR build only\nno deploy| M["main"]
+    F["feature/*"] -->|PR build only\nno deploy| M["main"]
     M -->|CICD push| TEST["TEST\nauto-deploy"]
     M -->|CreateRelease| R["release/*"]
     R -->|CICD push| UAT["UAT\nauto-deploy"]
@@ -50,7 +50,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant F as feature / hotfix
+    participant F as feature
     participant M as main
     participant R as release
     participant TEST as TEST env
@@ -78,22 +78,6 @@ sequenceDiagram
     R-->>PROD: PublishToEnvironment (manual)
     deactivate R
 
-    Note over F,PROD: Hotfix path
-    activate R
-    R->>F: hotfix/bug-description from release/x.y.z
-    deactivate R
-    activate F
-    F-->>F: Fix and validate locally
-    F->>R: PR and merge to release/x.y.z
-    deactivate F
-    activate R
-    R-->>UAT: CICD auto-deploy
-    R->>M: PR and merge to main
-    R-->>PROD: PublishToEnvironment (manual)
-    deactivate R
-    activate M
-    M-->>TEST: CICD auto-deploy
-    deactivate M
 ```
 
 ---
@@ -223,30 +207,33 @@ gh workflow run PublishToEnvironment.yaml --ref release/x.y.z --field appVersion
 >
 > In this model, `CreateRelease` runs from `main` (to create the release branch), and the CICD that builds the release artifacts runs on `release/x.y.z`. Therefore `PublishToEnvironment` must also run from `release/x.y.z` — not from `main`.
 
-### Hotfix release
+### Hotfix (bug fix from a release branch)
+
+Hotfixes are not a separate branch type — they are `feature/*` branches created from the active release branch. The branch name convention is `feature/hotfix-<description>-from-<release>`.
 
 ```text
-hotfix/* (from release/x.y.z) → PR → release/x.y.z → CICD → UAT
-PR → main → CICD → TEST
+feature/hotfix-* (from release/x.y.z) → PR build only
+PR → release/x.y.z → CICD → UAT auto-deploys
+PR → main → CICD → TEST auto-deploys
 PublishToEnvironment from release/x.y.z → Production
 ```
 
 **Commands:**
 
 ```powershell
-# 1. Create hotfix branch from the active release branch
-git checkout -b hotfix/fix-description origin/release/x.y.z
+# 1. Create the fix branch from the active release branch
+git checkout -b feature/hotfix-fix-description-from-x.y.z origin/release/x.y.z
 # ... make the fix ...
 git add -A && git commit -m "Hotfix: fix-description"
-git push origin hotfix/fix-description
-# PR build fires — build only, no deploy (hotfix/* is not in CICDPushBranches)
+git push origin feature/hotfix-fix-description-from-x.y.z
+# PR build fires — build only, no deploy (feature/* is not in CICDPushBranches)
 
-# 2. Merge hotfix to release branch
-gh pr create --base release/x.y.z --head hotfix/fix-description --title "Hotfix: fix-description"
+# 2. Merge to release branch
+gh pr create --base release/x.y.z --head feature/hotfix-fix-description-from-x.y.z --title "Hotfix: fix-description"
 # After merge: CICD on release/x.y.z → UAT auto-deploys. Validate in UAT.
 
-# 3. Merge hotfix to main (keep main current with the fix)
-gh pr create --base main --head hotfix/fix-description --title "Hotfix: fix-description (main sync)"
+# 3. Merge to main (keep main current with the fix)
+gh pr create --base main --head feature/hotfix-fix-description-from-x.y.z --title "Hotfix: fix-description (main sync)"
 # After merge: CICD on main → TEST auto-deploys
 
 # 4. Publish to Production from the release branch (same-branch rule)
@@ -261,7 +248,7 @@ gh workflow run PublishToEnvironment.yaml --ref release/x.y.z --field appVersion
 | --- | --- |
 | `doNotPublishApps: false` | Artifacts never uploaded → all deploy jobs silently skip with no error |
 | `Branches` key required inside every `DeployTo<env>` block | Missing = empty allowlist = environment excluded from CICD matrix even with `ContinuousDeployment: true` |
-| `CICDPushBranches` must NOT include `feature/*` or `hotfix/*` | Feature pushes trigger CICD, and since no `DeployTo` block has `feature/*` in its `Branches`, all environments appear in the matrix with `EnvironmentCount=0` — wasted runner time |
+| `CICDPushBranches` must NOT include `feature/*` | Feature pushes trigger CICD, and since no `DeployTo` block has `feature/*` in its `Branches`, all environments appear in the matrix with `EnvironmentCount=0` — wasted runner time |
 | `CreateRelease` with `createReleaseBranch: true` | Without the release branch, CICD on `release/*` never fires — UAT never auto-deploys |
 | `PublishToEnvironment` from the same branch as the most recent CICD run | Asset names mismatch → `PublishToEnvironment` finds 0 artifacts, reports "success", nothing deployed |
 | At least one non-markdown, non-workflow file change per push | `paths-ignore` in CICD.yaml skips the run → CICD never triggers |
@@ -294,7 +281,7 @@ Before applying this configuration to a production repository, verify all scenar
 | UAT deploy source | `release/*` | `main` and `release/*` |
 | Settings structure | Flat `DeployTo` blocks | Nested `ConditionalSettings` |
 | `excludeEnvironments` needed | No | Yes |
-| Branch naming enforced | No | Yes (`feature/*`, `hotfix/*` required) |
+| Branch naming enforced | No — all work branches are `feature/*` | Yes (`feature/*` required; `hotfix/*` supported separately) |
 | Silent EnvironmentCount=0 risk | Lower | Present — must check Initialization log |
 | GitHub Environments required | Yes (or `environments` array for free orgs) | Yes (paid / public) |
 | Configuration complexity | Low | High |
