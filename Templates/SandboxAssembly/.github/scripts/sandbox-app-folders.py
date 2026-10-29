@@ -25,7 +25,10 @@ so that the answer can only grow. conditionalSettings, user settings and GitHub 
 read; they can only make a list different on a branch, and the union over both refs already errs
 on the side of asking for a verdict.
 
-Inside an app folder, docs/ and scripts/ do not ship: they are not compiled into the .app.
+Inside an app folder, documentation and scripts in docs/ and scripts/ do not ship - but only files
+of a type the AL compiler never takes in (NOT_COMPILED). The folder name alone proves nothing: the
+compiler takes every .al file under the app folder, docs/ included, and an image there can be a
+resource the app declares. Anything else in those folders counts as shipping.
 
 Exit code 2 when a settings file cannot be read. The caller then has to treat every changed file
 as one that reaches BC.
@@ -41,6 +44,7 @@ LISTS = ("appFolders", "testFolders", "bcptTestFolders")
 REPO_SETTINGS = ".github/AL-Go-Settings.json"
 PROJECT_SETTINGS = ".AL-Go/settings.json"
 NOT_SHIPPED = ("docs", "scripts")
+NOT_COMPILED = (".md", ".txt", ".ps1", ".psm1", ".psd1", ".sh", ".py", ".cmd", ".bat")
 
 
 class SettingsError(Exception):
@@ -92,7 +96,9 @@ def ships(path, folders):
     for folder in folders:
         if path.startswith(folder + "/"):
             inside = path[len(folder) + 1:]
-            return inside.split("/", 1)[0] not in NOT_SHIPPED or "/" not in inside
+            exempt = ("/" in inside and inside.split("/", 1)[0] in NOT_SHIPPED
+                      and posixpath.splitext(inside)[1].lower() in NOT_COMPILED)
+            return not exempt
     return False
 
 

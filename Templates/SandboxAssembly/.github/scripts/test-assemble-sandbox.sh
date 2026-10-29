@@ -383,5 +383,29 @@ before="$(sandbox)"
 check  "a closed request just leaves the list" run
 check  "#2 is still there"                    has b.txt
 
+echo "26. every project's .AL-Go folder is the one on main, at any depth"
+# A multi-project repository: each project has its own .AL-Go, and AL-Go runs the PowerShell
+# overrides it finds there inside the build. One project name has a space in it.
+git checkout --quiet main
+mkdir -p "Core/.AL-Go" "Group/My Edi/.AL-Go"
+echo "core settings on main" > "Core/.AL-Go/settings.json"
+echo "edi settings on main" > "Group/My Edi/.AL-Go/settings.json"
+git add . && git commit --quiet -m "projects" && git push --quiet origin main
+git checkout --quiet -b pr10 main
+echo "from pr10" > d.txt
+echo "settings a pull request would like" > "Core/.AL-Go/settings.json"
+echo "Write-Host 'code nobody reviewed'" > "Group/My Edi/.AL-Go/NewBcContainer.ps1"
+mkdir -p "New/.AL-Go" && echo "a project main does not have" > "New/.AL-Go/settings.json"
+git add . && git commit --quiet -m pr10 && git push --quiet origin pr10
+git checkout --quiet main
+{ line 10 pr10; } > "$T/prs.tsv"
+check  "the run succeeds"                     run
+check  "the app change from pr10 is in"       has d.txt
+check  "a project's settings are the ones on main" contentis "Core/.AL-Go/settings.json" 'core settings on main'
+refute "an override script added to a project is not" has "Group/My Edi/.AL-Go/NewBcContainer.ps1"
+check  "the project with a space keeps main's settings" contentis "Group/My Edi/.AL-Go/settings.json" 'edi settings on main'
+refute "a .AL-Go folder only the request has is not" has "New/.AL-Go/settings.json"
+check  "and the run says so"                  said "taken from main"
+
 echo
 if [ "$FAILS" -eq 0 ]; then echo "all passed"; else echo "$FAILS failed"; exit 1; fi

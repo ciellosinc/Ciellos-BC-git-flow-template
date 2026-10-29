@@ -48,11 +48,16 @@ refute "a listed folder that does not exist is not" listed Missing
 
 echo "2. what ships from those folders"
 REF="$ONE"
-shipped App/src/Code.al App/docs/Design.md App/scripts/run.ps1 Unlisted/src/Code.al .github/workflows/x.yaml README.md App/app.json
+shipped App/src/Code.al App/docs/Design.md App/scripts/run.ps1 Unlisted/src/Code.al .github/workflows/x.yaml README.md App/app.json \
+        App/docs/Hidden.al App/scripts/Helper.Codeunit.al App/docs/diagram.png App/docs/README.MD
 check  "code in an app folder ships"              listed App/src/Code.al
 check  "app.json ships"                           listed App/app.json
 refute "docs/ inside an app folder does not"      listed App/docs/Design.md
 refute "scripts/ inside an app folder does not"   listed App/scripts/run.ps1
+refute "an upper-case .MD in docs/ does not"      listed App/docs/README.MD
+check  "but an .al file in docs/ is compiled, so it ships" listed App/docs/Hidden.al
+check  "and so does an .al file in scripts/"      listed App/scripts/Helper.Codeunit.al
+check  "an image in docs/ may be a resource, so it ships" listed App/docs/diagram.png
 refute "an app AL-Go does not build does not"     listed Unlisted/src/Code.al
 refute "the pipeline does not"                    listed .github/workflows/x.yaml
 refute "the readme does not"                      listed README.md

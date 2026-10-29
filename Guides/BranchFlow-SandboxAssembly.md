@@ -80,7 +80,7 @@ flowchart TD
 
 - Every new push to the PR **clears** the checkbox and removes the `sandbox-tested` label. Otherwise unverified code would inherit an approval given to an earlier commit.
 - A verdict is only asked for when the diff touches a file that ends up in a `.app`. Pipeline and documentation PRs get `sandbox-verdict = success` automatically.
-- Which files end up in a `.app` comes from the **AL-Go settings**, so there is no separate list to keep up to date. A file counts when it lies in a folder AL-Go builds, except the `docs/` and `scripts/` folders inside it. The rules are AL-Go's own:
+- Which files end up in a `.app` comes from the **AL-Go settings**, so there is no separate list to keep up to date. A file counts when it lies in a folder AL-Go builds. The only exception is documentation and scripts (`.md`, `.txt`, `.ps1`, `.sh`, `.py` and similar) in the `docs/` and `scripts/` folders inside it. An `.al` file there still counts, because the compiler takes every `.al` file in the app folder. The rules are AL-Go's own:
   - the folders in `appFolders`, `testFolders` and `bcptTestFolders` of every project (wildcards allowed), but only those with an `app.json`;
   - a project where all three lists are empty: every folder below it with an `app.json`;
   - projects are the folders up to two levels deep with `.AL-Go/settings.json`, or those in the `projects` setting.
@@ -102,7 +102,7 @@ The assembly merges the PRs that were in the previous assembly first, in the sam
 
 ### Pipeline files always come from `main`
 
-`.github` and `.AL-Go` in `sandbox/current` are always taken from `main`, whatever the PRs change there. `CI/CD` on this branch reads its settings and workflows from the branch itself, so otherwise an unreviewed PR could change where and how the Sandbox is deployed. PRs that only change pipeline files are tested by merging them, not in the Sandbox.
+`.github` and **every** `.AL-Go` folder (each project in a multi-project repository has its own) in `sandbox/current` are always taken from `main`, whatever the PRs change there. `CI/CD` on this branch reads its settings and workflows from the branch itself, and runs the PowerShell overrides it finds in a project's `.AL-Go` folder inside the build. Otherwise an unreviewed PR could change where and how the Sandbox is deployed, or run its own code in the build. PRs that only change pipeline files are tested by merging them, not in the Sandbox.
 
 ### The sandbox must not shrink by accident
 
@@ -138,7 +138,8 @@ To catch it before the merge instead, the PR build would have to install the pre
 ### Security
 
 - **Assemble Sandbox** and **Sandbox Deployed** run their definition from `main` and check out `main`. Code from PRs is only *merged as data*; these workflows never execute it.
-- **Sandbox tested** runs on the `pull_request` event, so it runs the version of `SandboxTested.yaml` that is in the PR. A PR that edits that file can change its own gate. Review changes to `.github/` with that in mind. The script that decides which files ship (`sandbox-app-folders.py`) is taken from the base branch, and the PR's head is only read as data.
+- **Sandbox tested** runs on `pull_request_target`, so it always runs the version of `SandboxTested.yaml` on `main`, and its script (`sandbox-app-folders.py`) comes from `main` too. A PR that edits them cannot change the gate it is judged by. The PR's files are listed through the API and its AL-Go settings are only read as data; the workflow never checks out or runs anything from the PR. Keep it that way when you change it.
+- **The gate is only as strong as the review of `.github/`.** Anyone with write access can add a new workflow in a PR that posts `sandbox-verdict = success` itself, and it would run on that PR. Make changes under `.github/` and `.AL-Go/` need a review from the pipeline owners: a `CODEOWNERS` entry such as `/.github/ @org/pipeline-owners`, together with **Require review from Code Owners** in branch protection.
 - The bot pushes with the `GHTOKENWORKFLOW` secret (a personal access token). A push made with the default `GITHUB_TOKEN` does not start other workflows, so `CI/CD` would never build the assembly.
 - PRs from forks are never assembled.
 
@@ -242,7 +243,7 @@ The folder contains:
 | `.github/workflows/SandboxDeployed.yaml` | End of **CI/CD** on `sandbox/current` | Runs the labelling script, then the Teams notification. |
 | `.github/scripts/notify-teams.py` | — | Optional. Posts an Adaptive Card to a Teams channel: the PRs in the Sandbox now (with titles and the deployed commit), the ones left out and why, and buttons for the Sandbox, the PR list and the CI/CD run. Does nothing without the `TEAMS_WEBHOOK_URL` secret, and never fails the run. |
 | `.github/scripts/mark-sandbox-deployed.sh` | — | Checks that the **Deploy to Sandbox** job really succeeded, reads the manifest commit, sets `in-sandbox` on the included PRs (with a comment naming the deployed commit) and removes it from the others. |
-| `.github/workflows/SandboxTested.yaml` | `pull_request`: opened, reopened, edited, labeled, unlabeled, synchronize | Clears the verdict on a new push, decides from the changed files whether a verdict is needed, and publishes the `sandbox-verdict` commit status. |
+| `.github/workflows/SandboxTested.yaml` | `pull_request_target`: opened, reopened, edited, labeled, unlabeled, synchronize | Clears the verdict on a new push, decides from the changed files whether a verdict is needed, and publishes the `sandbox-verdict` commit status. |
 | `.github/scripts/sandbox-app-folders.py` | — | Reads the AL-Go settings of the base and the head of the PR and works out which changed files lie in a folder AL-Go builds. Follows AL-Go's own rules (see below). |
 | `.github/pull_request_template.md` | — | Contains the `- [ ] Verified in the BC sandbox` checkbox. |
 | `.github/scripts/test-*.sh` | By hand | Tests for the three scripts, against a throwaway local repository and a stub `gh`. No network needed. |

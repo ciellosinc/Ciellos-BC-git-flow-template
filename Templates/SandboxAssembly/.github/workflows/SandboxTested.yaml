@@ -26,10 +26,16 @@
 #
 # Body and labels are read back from the API rather than from the event payload, because the payload
 # is a snapshot taken before the clearing step below runs.
+#
+# pull_request_target rather than pull_request: this workflow always runs as it is on the base branch,
+# so a request that edits this file cannot change the gate it is judged by. That is safe only because
+# nothing from the request is executed here - its files are listed through the API and its AL-Go
+# settings are read as data (git show), never checked out or run. Keep it that way: never check out
+# the head of the request in this workflow, and never run a script from it.
 name: Sandbox tested
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, labeled, unlabeled, edited, synchronize]
 
 permissions:
@@ -64,9 +70,9 @@ jobs:
             echo "Cleared the tick: new commits have not been verified."
           fi
 
-      # The base of the request, not its head: the script that decides comes from the base branch,
-      # so a request cannot change the rule it is judged by. The head is only fetched, and only read
-      # as data (git show) for its AL-Go settings.
+      # The base of the request, never its head (see the top of this file): the script that decides
+      # comes from the base branch, so a request cannot change the rule it is judged by. The head is
+      # only fetched, and only read as data (git show) for its AL-Go settings.
       - name: Check out the base of the pull request
         uses: actions/checkout@v4
         with:
@@ -87,7 +93,8 @@ jobs:
 
           # A file ships when it lies in a folder AL-Go builds - appFolders, testFolders and
           # bcptTestFolders of the AL-Go settings, on the base and on the head of the request
-          # together. docs/ and scripts/ inside an app folder do not ship.
+          # together. Only documentation and scripts in docs/ and scripts/ inside an app folder are
+          # exempt; an .al file there is compiled like any other.
           git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null \
             || git fetch --quiet origin "refs/pull/${PR}/head"
           echo "app folders:"
@@ -125,9 +132,8 @@ jobs:
       # The context is 'sandbox-verdict', not 'gate': the job itself is still reported as
       # "Sandbox tested / gate", and two entries under one name would be unreadable.
       #
-      # A pull request from a fork would get a read-only token and this step would fail. This
-      # assumes pull requests come from branches of the repository itself; if forks are used, this
-      # needs the pull_request_target dance.
+      # Body and labels are read in two separate queries. Read into one file, a line in the body
+      # that just says "sandbox-tested" would pass for the label.
       - name: Publish the verdict as a commit status
         env:
           GH_TOKEN: ${{ github.token }}
@@ -141,12 +147,12 @@ jobs:
           description="No sandbox verdict required: nothing here reaches a .app."
 
           if [ "$NEEDED" = "true" ]; then
-            gh pr view "$PR" --repo "$REPO" --json body,labels \
-              --jq '.body, (.labels[].name)' > state.txt
+            gh pr view "$PR" --repo "$REPO" --json body --jq '.body' > body.md
+            gh pr view "$PR" --repo "$REPO" --json labels --jq '.labels[].name' > labels.txt
 
-            if grep -qE "^[[:space:]]*-[[:space:]]*\[x\] $MARK" state.txt; then
+            if grep -qE "^[[:space:]]*-[[:space:]]*\[x\] $MARK" body.md; then
               description="Verified in the sandbox: the box is ticked in the description."
-            elif grep -qx 'sandbox-tested' state.txt; then
+            elif grep -qx 'sandbox-tested' labels.txt; then
               description="Verified in the sandbox: the sandbox-tested label is set."
             else
               state=pending

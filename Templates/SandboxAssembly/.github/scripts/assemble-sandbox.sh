@@ -14,10 +14,12 @@
 # request that was closed simply is not there after the next run. Nothing is ever resolved here. A
 # request that does not merge cleanly is skipped and told why; the fix belongs in its own branch.
 #
-# Only application code comes from pull requests. .github and .AL-Go in the assembly are always the
-# ones on main: CI/CD on this branch reads its settings and workflows from this branch, so a
-# request that edits them would otherwise change where and how the sandbox build deploys before
-# anyone reviewed it - including AL-Go's own update requests, which rewrite CICD.yaml.
+# Only application code comes from pull requests. .github, and every .AL-Go folder at any depth,
+# are always the ones on main: CI/CD on this branch reads its settings and workflows from this
+# branch, and runs the PowerShell overrides it finds in a project's .AL-Go folder inside the build,
+# so a request that edits them would otherwise change where and how the sandbox build deploys - or
+# run code in it - before anyone reviewed it. That includes AL-Go's own update requests, which
+# rewrite CICD.yaml, and the .AL-Go folder of every project in a multi-project repository.
 #
 # The 'in-sandbox' label is not touched here. Being assembled is not being deployed - the build of
 # this branch can still fail - so the label follows the deployment: mark-sandbox-deployed.sh sets
@@ -66,7 +68,7 @@ DRY=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --dry-run) DRY=1; shift ;;
-        -h|--help) sed -n '2,61p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,63p' "$0"; exit 0 ;;
         *) echo "unknown option: $1" >&2; exit 2 ;;
     esac
 done
@@ -77,8 +79,10 @@ BASE=main
 # branches (a dated assembly made by hand, for example) - a leaf inside that namespace conflicts with nothing.
 TARGET=sandbox/current
 CHECK="Pull Request Status Check"
-# What decides where and how this branch is built and deployed. Always taken from main.
-PIPELINE_PATHS=".github .AL-Go"
+# What decides where and how this branch is built and deployed. Always taken from main. The list
+# itself is worked out after the merges (pipeline_paths below): the root .github, and every folder
+# named .AL-Go, at any depth, in main or in the assembly.
+PIPELINE_DESC=".github and every .AL-Go folder"
 FORCE="${ASSEMBLE_FORCE:-0}"
 ROOT="$(git rev-parse --show-toplevel)"
 TAB="$(printf '\t')"
@@ -290,17 +294,34 @@ done <<LIST
 $ORDERED
 LIST
 
+# Every pipeline folder in either tree: the root .github, and each folder named .AL-Go at any depth.
+# Both trees, because a request can add a project's .AL-Go folder that main does not have (it has to
+# go) as well as change one main has (it has to be put back). One path per line - a project folder
+# may have spaces in its name.
+pipeline_paths() {  # <tree-ish>...
+    for ref in "$@"; do
+        git -C "$WORK" -c core.quotePath=false ls-tree -r --name-only "$ref"
+    done | awk -F/ '
+        $1 == ".github" && NF > 1 { print ".github"; next }
+        { for (i = 1; i < NF; i++) if ($i == ".AL-Go") {
+              p = $1; for (j = 2; j <= i; j++) p = p "/" $j; print p; break } }' | sort -u
+}
+
 # Put the pipeline back to what main has. Removing first and checking out after restores it
 # exactly: a plain checkout would bring back what a request changed or deleted, but leave the
 # files it added. `ls-tree` rather than `rev:path`, which Git Bash rewrites into a Windows path.
-for path in $PIPELINE_PATHS; do
+PIPELINE_PATHS="$(pipeline_paths HEAD "$REMOTE/$BASE")"
+while IFS= read -r path; do
+    [ -n "$path" ] || continue
     git -C "$WORK" rm -r --quiet --ignore-unmatch -- "$path" >/dev/null
     if [ -n "$(git -C "$WORK" ls-tree --name-only "$REMOTE/$BASE" -- "$path")" ]; then
         git -C "$WORK" checkout --quiet "$REMOTE/$BASE" -- "$path"
     fi
-done
+done <<PATHS
+$PIPELINE_PATHS
+PATHS
 if ! git -C "$WORK" diff --cached --quiet; then
-    echo "  pipeline files ($PIPELINE_PATHS) taken from main - what pull requests change there does not reach the sandbox"
+    echo "  pipeline files ($PIPELINE_DESC) taken from main - what pull requests change there does not reach the sandbox"
     # shellcheck disable=SC2086
     git -C "$WORK" $GITID commit --quiet -m "$TARGET: pipeline files taken from $BASE"
 fi
