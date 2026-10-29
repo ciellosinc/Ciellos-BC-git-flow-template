@@ -19,9 +19,10 @@ The project is managed using the Kanban board.
 ## :unicorn: Application
 This Business Central Application has the following parameters:
 - **Name**: "ABC Extension"  
-- **Extension Type**: [Per-tenant extension (PTE)](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#per-tenant-extensions-ptes)  
-- **Extension Type**: [AppSource or Global app](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#global-apps)
-- **Business Central Version**: BC 23
+- **Extension Type** (keep one, delete the other):
+  - [Per-tenant extension (PTE)](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#per-tenant-extensions-ptes)
+  - [AppSource or Global app](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extension-types-and-scope#global-apps)
+- **Business Central Version**: BC 28
 
 *Please use one code repository per Extension*
 
@@ -51,20 +52,21 @@ The customer is going to use the following extensions, including third-party ISV
 | Environment | Branch      |  Link                                                                          | Description |
 |:------------|:------------|:-------------------------------------------------------------------------------|-------------|
 | `DEV`       | `feature/*` | Use local Docker-containers for development                                    | Dev box
-| `Sandbox`   | `main`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST | Internal Testing
-| `UAT`       | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
-| `PROD`      | `release`   | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
+| `TEST`      | `main`      | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/TEST | Internal Testing
+| `UAT`       | `release/*` | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/UAT  | Customer's User Acceptance Test
+| `PROD`      | `release/*` | https://businesscentral.dynamics.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/PROD | Production - we have no access
 
-- Please check how to set the BC Environment AUTHCONTEXT as a Github Repository Secret [BC Environment Repo Secret](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/eh-ciellos-patch-1/Guides/AUTHCONTEXT.md).
-- Please find how to set up a [local `DEV` environment](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md).  
-- Please find how to set up [Environments](https://dev.azure.com/ciellos-bc/main/_wiki/wikis/Internal%20Wiki/109/Environments).  
-- Please find how to work with [Branches](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md).
+- Please check how to set the BC Environment AUTHCONTEXT as a GitHub Repository Secret: [BC Environment Repo Secret](Guides/AUTHCONTEXT.md).
+- Please find how to set up a [local `DEV` environment](Guides/LocalDevelopment.md).
+- Please find how to set up [Environments](https://dev.azure.com/ciellos-bc/main/_wiki/wikis/Internal%20Wiki/109/Environments).
+- Please find how to work with [Branches](Guides/BranchFlow.md).
+- The list of environment URLs is also kept in [ENVIRONMENTS.md](ENVIRONMENTS.md).
 
 ## :microscope: Kanban board and Product Backlog
 [![Board Status](https://ciellos.visualstudio.com/6f789900-0db7-46c9-9b00-84e46c577012/12d40337-33b9-431b-8f86-a52195352ee1/_apis/work/boardbadge/7c8cf15d-7ca5-45f8-9a46-e6cb22409844)](https://ciellos.visualstudio.com/6f789900-0db7-46c9-9b00-84e46c577012/_boards/board/t/12d40337-33b9-431b-8f86-a52195352ee1/Microsoft.RequirementCategory)
 
 - [Kanban board](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template/_boards/board/t/Ciellos%20BC%20git%20flow%20Template%20Team/Stories)
-- [Product Log](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template)
+- [Product Backlog](https://ciellos.visualstudio.com/Ciellos%20BC%20git%20flow%20Template)
 
 
 ## :passport_control: Pipelines and Automation
@@ -72,7 +74,7 @@ The customer is going to use the following extensions, including third-party ISV
 |--------------------------|------------|-------------|
 | `CI/CD`              | on code push for branches: `main`, `release/*`, `feature/*` | Build, Build Power Platform, Deploy ALDoc, Deploy to environments, Deliver. </br> _Some steps may be skipped if they are not configured_
 | `Pull Request Build` | on PR for the main branch | Make Code Validation
-| `Test Next Minor`    | Weekly | Build the code against the Next Major version
+| `Test Next Minor`    | Weekly | Build the code against the Next Minor version
 | `Test Next Major`    | Weekly and after each `CI/CD` pipeline on the `main` branch successfully completed | Build the code against the Next Major version
 | `Create release`     | Manually only | Prepare release notes, Create Release, Upload Artifacts (NuGet, Storage, GitHub), Create Release Branch, Update Version Number
 
@@ -84,6 +86,8 @@ The customer is going to use the following extensions, including third-party ISV
 # :moyai: Best Practices and other helpful information
 Below, you can find the table of contents pointing to all the needed guides for Business Central development:
 
-- [Branches and git Flow](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/BranchFlow.md)
-- [Local development setup](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/LocalDevelopment.md)
-- [AL Development Best Practices](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/ALDevelopmentBestPractices.md)
+- [Branches and git Flow](Guides/BranchFlow.md)
+- [Local development setup](Guides/LocalDevelopment.md)
+- [AL Development Best Practices](Guides/ALDevelopmentBestPractices.md)
+- [Deployment authentication (AUTHCONTEXT)](Guides/AUTHCONTEXT.md)
+- [Code signing with Azure Key Vault](Guides/CodeSigningALGo.md)

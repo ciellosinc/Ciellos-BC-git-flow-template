@@ -1,1 +1,3 @@
-@ciellosinc/Ciellos-BC-git-flow-template
+# Default owners for everything in the repository.
+# Each line is "<path pattern> <owner>..."; a line with only an owner has no pattern and is ignored by GitHub.
+* @ciellosinc/bc-template-contributors
