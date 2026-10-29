@@ -419,14 +419,20 @@ echo "from pr11" > e2.txt && git add e2.txt
 entry 100644 "Core/.al-go/NewBcContainer.ps1" "Write-Host 'lower-case folder'"
 entry 100644 ".GitHub/AL-Go-Settings.json"    "settings in a differently spelled .github"
 entry 120000 "Evil/.AL-Go"                    "../somewhere/else"
+entry 100644 "Core/AL-GO~1/NewBcContainer.ps1" "Write-Host 'an 8.3 short name of .AL-Go'"
+entry 100644 "Short/GITHUB~1.x/a.json"       "an 8.3-shaped name with an extension"
 # Names Git for Windows refuses outright (core.protectNTFS) - they are covered where they can exist,
 # on the Linux runner GitHub uses.
 case "$(uname -s)" in
-    MINGW*|MSYS*|CYGWIN*) QUOTED=""; COLON="" ;;
+    MINGW*|MSYS*|CYGWIN*) QUOTED=""; COLON=""; DOT=""; SPACE="" ;;
     *) QUOTED='Odd"Name/.AL-Go/NewBcContainer.ps1'
        COLON=':colon/.AL-Go/settings.json'
+       DOT='Core/.AL-Go./NewBcContainer.ps1'
+       SPACE='Core/.al-go /NewBcContainer.ps1'
        entry 100644 "$QUOTED" "Write-Host 'a name git would print in quotes'"
-       entry 100644 "$COLON"  "a name that looks like pathspec magic" ;;
+       entry 100644 "$COLON"  "a name that looks like pathspec magic"
+       entry 100644 "$DOT"    "Write-Host 'NTFS drops the trailing dot'"
+       entry 100644 "$SPACE"  "Write-Host 'NTFS drops the trailing space'" ;;
 esac
 git commit --quiet -m pr11 && git push --quiet origin pr11
 git checkout --quiet -f main
@@ -436,12 +442,16 @@ check  "the app change from pr11 is in"       has e2.txt
 refute "a lower-case .al-go folder is not"    has "Core/.al-go/NewBcContainer.ps1"
 refute "a .GitHub folder is not"              has ".GitHub/AL-Go-Settings.json"
 refute "a symlink called .AL-Go is not"       has "Evil/.AL-Go"
+refute "an 8.3 short name of .AL-Go is not"   has "Core/AL-GO~1/NewBcContainer.ps1"
+refute "nor any other 8.3-shaped folder"      has "Short/GITHUB~1.x/a.json"
 check  "main's own Core/.AL-Go is untouched"  contentis "Core/.AL-Go/settings.json" 'core settings on main'
 if [ -n "$QUOTED" ]; then
     refute "a name with a quote in it is not"   has "$QUOTED"
     refute "a name starting with ':' is not"    has "$COLON"
+    refute ".AL-Go with a trailing dot is not"  has "$DOT"
+    refute ".al-go with a trailing space is not" has "$SPACE"
 else
-    echo "  skip  names with a quote or a leading ':' (Windows cannot hold them; covered on Linux)"
+    echo "  skip  names with a quote, a leading ':' or a trailing dot or space (Windows cannot hold them; covered on Linux)"
 fi
 
 echo

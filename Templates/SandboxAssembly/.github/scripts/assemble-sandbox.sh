@@ -305,13 +305,26 @@ LIST
 # NUL-separated from ls-tree -z to git rm/checkout, never one path per line: git puts a name with a
 # quote, a backslash or a control character in quotes when it prints one per line, and the quoted
 # text names no path at all - the folder would quietly stay.
+#
+# A name is compared the way NTFS resolves it, not as text: trailing dots and spaces dropped, letter
+# case folded (".AL-Go. " is .AL-Go there). And a part shaped like an 8.3 short name (AL-GO~1) counts
+# too, whatever it spells: on a volume that keeps short names it can be another name for .AL-Go, and
+# the short name cannot be worked out from the tree. Git for Windows refuses some of these on its
+# own (core.protectNTFS), but not short names other than .git's. Such names do not occur in an AL
+# repository otherwise; one that does is left out of the sandbox, which is the safe way to be wrong.
+is_pipeline_part() {  # <name> <pipeline folder name, lower-case>
+    # No subshell here: this runs for every part of every path in two trees.
+    local n="${1,,}"
+    while [[ "$n" == *[.\ ] ]]; do n="${n%?}"; done
+    [ "$n" = "$2" ] || [[ "$n" =~ ^[^.~/]{1,6}~[0-9]+(\.[^.]{0,3})?$ ]]
+}
 pipeline_paths() {  # <tree-ish>...
     local ref f rest comp prefix
     for ref in "$@"; do
         git -C "$WORK" ls-tree -r -z --name-only "$ref"
     done | while IFS= read -r -d '' f; do
         comp="${f%%/*}"
-        if [ "${comp,,}" = ".github" ]; then
+        if is_pipeline_part "$comp" ".github"; then
             printf '%s\0' "$comp"
             continue
         fi
@@ -320,7 +333,7 @@ pipeline_paths() {  # <tree-ish>...
             comp="${rest%%/*}"
             if [ "$comp" = "$rest" ]; then rest=""; else rest="${rest#*/}"; fi
             prefix="${prefix:+$prefix/}$comp"
-            if [ "${comp,,}" = ".al-go" ]; then
+            if is_pipeline_part "$comp" ".al-go"; then
                 printf '%s\0' "$prefix"
                 break
             fi
@@ -335,7 +348,9 @@ pipeline_paths() {  # <tree-ish>...
 pipeline_paths HEAD > "$LISTS/remove"
 pipeline_paths "$REMOTE/$BASE" > "$LISTS/restore"
 if [ -s "$LISTS/remove" ]; then
-    git -C "$WORK" --literal-pathspecs rm -r --quiet --ignore-unmatch \
+    # -f: on a case-insensitive disk .al-go/ and AL-GO~1/ are the same folder as .AL-Go/, so git
+    # sees those files as modified and would refuse. The worktree is ours and temporary.
+    git -C "$WORK" --literal-pathspecs rm -r -f --quiet --ignore-unmatch \
         --pathspec-from-file="$LISTS/remove" --pathspec-file-nul >/dev/null
 fi
 if [ -s "$LISTS/restore" ]; then

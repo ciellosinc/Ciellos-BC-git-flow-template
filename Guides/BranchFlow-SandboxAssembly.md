@@ -102,7 +102,7 @@ The assembly merges the PRs that were in the previous assembly first, in the sam
 
 ### Pipeline files always come from `main`
 
-`.github` and **every** `.AL-Go` folder (each project in a multi-project repository has its own) in `sandbox/current` are always taken from `main`, whatever the PRs change there. "Every" includes any letter case (`.al-go` lands in the same folder on a Windows runner) and a symlink by that name. `CI/CD` on this branch reads its settings and workflows from the branch itself, and runs the PowerShell overrides it finds in a project's `.AL-Go` folder inside the build. Otherwise an unreviewed PR could change where and how the Sandbox is deployed, or run its own code in the build. PRs that only change pipeline files are tested by merging them, not in the Sandbox.
+`.github` and **every** `.AL-Go` folder (each project in a multi-project repository has its own) in `sandbox/current` are always taken from `main`, whatever the PRs change there. "Every" includes every other name Windows resolves to the same folder: any letter case (`.al-go`), a trailing dot or space (`.AL-Go.`), and folders shaped like an 8.3 short name (`AL-GO~1`). It also includes a symlink by that name. Such names have no place in an AL repository, so a PR that uses them simply loses those files in the Sandbox. `CI/CD` on this branch reads its settings and workflows from the branch itself, and runs the PowerShell overrides it finds in a project's `.AL-Go` folder inside the build. Otherwise an unreviewed PR could change where and how the Sandbox is deployed, or run its own code in the build. PRs that only change pipeline files are tested by merging them, not in the Sandbox.
 
 ### The sandbox must not shrink by accident
 
