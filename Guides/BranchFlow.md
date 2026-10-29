@@ -24,7 +24,7 @@ sequenceDiagram
         deactivate M
         activate F
         F-->>F: Development
-        F-->>F: Daily Push to remote. Commit format: #35;1234 - TaskDescription
+        F-->>F: Daily Push to remote. Commit format: AB#35;1234 - TaskDescription
         F-->>F: Developer makes a test
         F->>M: Pull Request to Main
         M->>F: If Code Review is not successful -> Fix issues and repeat steps 2-4
@@ -78,26 +78,26 @@ sequenceDiagram
 
 2. **Feature Development:**
    - Develop a new feature
-   - Please use [Best Practices for AL development](https://github.com/ciellosinc/Ciellos-BC-git-flow-template/blob/main/Guides/ALDevelopmentBestPractices.md)
+   - Please use [Best Practices for AL development](ALDevelopmentBestPractices.md)
    - Commit changes with a comment like `AB#1234 - TaskDescription` indicating the related DevOps WorkItem.
-       - Where AB# is the prefix to the Azure DevOps integration. If you are using another Product Backlog System, like Jira, Azure DevOps, or GitHub Projects.
+       - `AB#` is the prefix that the Azure Boards integration recognizes: it links the commit and the PR to work item 1234. Without the `AB` prefix (`#1234`) GitHub links to its own issue/PR #1234 instead.
+       - If you use another Product Backlog System (Jira, GitHub Projects), use the key format that system recognizes, for example `PROJ-1234`.
        - Feel free to copy and paste the Task Title from the Product Backlog System. Feel free to add more technical details, including answering the *Why* question.
    - Push commits to the remote repository daily. Please back up your code changes. 
    - Conduct developer testing.
 
 3. **Pull Request (PR) to `main`:**
-   - Initiate a Pull Request from the `feature` branch to the `main` branch.
-   - Ask a Team Lead or another Developer to make a Code Review
-   - Approve Pull Request. Make Squash and Merge the PR to the `main` branch
+   - Initiate a Pull Request from the `feature` branch to the `main` branch. Use the same `AB#1234 - TaskDescription` format for the PR title.
+   - Ask a Team Lead or another Developer to make a Code Review.
 
 4. **Pull Request Build and Approval:**
-   - Trigger a build for the pull request.
+   - The `Pull Request Build` workflow starts automatically when the PR is opened or updated.
    - Seek necessary approvals.
      - [ ] If PR build succeeds and is Approved, proceed to the next step.
      - [ ] If PR build has not succeeded or PR is not approved, fix issues in the `feature` branch and repeat steps 2-4.
 
 5. **Merge to `main`:**
-   - Merge the feature branch into `main`.
+   - Merge the PR with **Squash and Merge** (not *Create a merge commit*), so that one feature becomes one commit on `main`.
 
 6. **CI/CD to the TEST Environment:**
    - Automatically trigger CI/CD to deploy changes from `main` to the TEST Environment.
@@ -124,5 +124,5 @@ sequenceDiagram
     - Fix the bug, deploy to a test environment
     - Test the fix
     - Merge changes back to the branches `release` and `main`. It is necessary to make PR and merge to the `main` branch because we would like to save the fix for the next releases
-    - Do not forget to delete the `hotifx` branch after moving changes to the `main` and `release` branches
+    - Do not forget to delete the `hotfix` branch after moving changes to the `main` and `release` branches
 
