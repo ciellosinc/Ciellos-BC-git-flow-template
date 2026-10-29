@@ -1,0 +1,65 @@
+# Sets the 'in-sandbox' label once a pull request is really deployed in the Sandbox environment,
+# and takes it off the ones that no longer are.
+#
+# It listens for the end of AL-Go's CI/CD run on the assembled branch instead of adding a step to
+# CICD.yaml: that file belongs to AL-Go and is rewritten by its system-file updates, this one is
+# not. Like Assemble Sandbox, the definition always runs from main and checks out main; nothing
+# from a pull request is executed.
+name: Sandbox Deployed
+
+on:
+  workflow_run:
+    # AL-Go names the workflow ' CI/CD', with a leading space; GitHub reports it as 'CI/CD'.
+    # Both spellings are listed so the trigger does not depend on which one is matched.
+    workflows: [ 'CI/CD', ' CI/CD' ]
+    types: [ completed ]
+    branches: [ 'sandbox/current' ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+# One labelling at a time, in the order the deployments finished, and never cancel one half-way
+# through a list of requests. The deployment that finished last is what is in the Sandbox, so that
+# is the one the labels end up following. (To keep CI/CD runs of sandbox/current from piling up,
+# give CI/CD a workflowConcurrency in .github/CICD.settings.json - see the guide.)
+concurrency:
+  group: sandbox-deployed
+  cancel-in-progress: false
+
+jobs:
+  mark:
+    # A cheap first filter. The script still checks the "Deploy to Sandbox" job itself, because a
+    # run is green even when that job was skipped.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main with full history
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Make the in-sandbox label follow the deployment
+        id: mark
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: bash .github/scripts/mark-sandbox-deployed.sh
+
+      # Optional: without the TEAMS_WEBHOOK_URL secret the script says so and does nothing. It only
+      # runs when the step above confirmed a real deployment of a manifest, and it cannot turn the
+      # run red - a Teams outage is not a reason to report a good deployment as failed.
+      - name: Tell the Teams channel what is in the Sandbox now
+        if: steps.mark.outputs.deployed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          SANDBOX_URL: ${{ vars.SANDBOX_URL }}
+          DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: python3 .github/scripts/notify-teams.py

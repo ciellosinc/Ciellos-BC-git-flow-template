@@ -1,0 +1,70 @@
+# Rebuilds the `sandbox/current` branch whenever the set of pull requests that belong in it may
+# have changed. AL-Go's CI/CD then builds that branch and deploys it to the Sandbox environment
+# (DeployToSandbox.Branches in AL-Go-Settings.json).
+#
+# A separate file on purpose: AL-Go's system-file updates rewrite its own workflows, not this one.
+#
+# Every trigger here runs the workflow definition from main, never from a pull request, and the
+# job checks out main. Pull-request code is only ever merged as data; none of it is executed.
+name: Assemble Sandbox
+
+on:
+  workflow_run:
+    workflows: [ 'Pull Request Build' ]
+    types: [ completed ]
+  push:
+    branches: [ main ]
+  pull_request_target:
+    types: [ closed, converted_to_draft, ready_for_review, reopened ]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: assemble and push even if that removes every pull request, or evicts one that is in the sandbox and is not ready any more
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+  statuses: read
+  actions: read
+
+# One assembly at a time. A run in progress is left to finish; each run recomputes the whole
+# branch, so a queued run that replaces another loses nothing.
+concurrency:
+  group: assemble-sandbox
+  cancel-in-progress: false
+
+jobs:
+  assemble:
+    # After every pull-request build that ran to an end, green or red. The script reads the real
+    # state of each request itself, so it needs no green build to be started - and a red one has
+    # to start it too: while a request's build runs the assembly is held, and if that build then
+    # fails, nothing else would come along to release the hold. A cancelled build is left out: it
+    # was replaced by a newer push, whose own build will report.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main with full history
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          # The push must start CI/CD. A push made with the default GITHUB_TOKEN starts no
+          # workflow at all, so the checkout - whose credentials the push reuses - takes the
+          # personal token instead.
+          token: ${{ secrets.GHTOKENWORKFLOW }}
+
+      - name: Assemble and push the sandbox/current branch
+        env:
+          # Comments go out as github-actions, not as the owner of the token above.
+          GH_TOKEN: ${{ github.token }}
+          # Only a hand-started run can carry this: an assembly that loses every pull request, or
+          # that would evict one already in the sandbox whose build has not finished, ended red, or
+          # whose branch no longer merges cleanly, otherwise stops instead of pushing - evicting
+          # takes that request's tables, and the test data in them, out of the Sandbox (ForceSync).
+          # Draft and close stay the deliberate ways out, and need no force.
+          ASSEMBLE_FORCE: ${{ inputs.force && '1' || '0' }}
+        run: bash .github/scripts/assemble-sandbox.sh

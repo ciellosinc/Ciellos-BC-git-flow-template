@@ -1,0 +1,5 @@
+# Shell scripts and workflows must keep LF line endings: bash fails on CRLF ($'\r': command not found)
+# when a Windows checkout with core.autocrlf=true converts them.
+*.sh   text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
