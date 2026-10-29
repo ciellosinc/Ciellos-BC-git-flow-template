@@ -23,9 +23,9 @@ You need three things in the end:
 - **Obtain a Code Signing Certificate:** Acquire a code signing certificate from a trusted Certificate Authority (CA).
 - **Import the Certificate into your Azure Key Vault:** This process varies depending on your CA.
   - For DigiCert and GlobalSign, there are already integrations in Azure Key Vault:  
-    [Integrating Key Vault with DigiCert certificate authority | Microsoft Learn](https://learn.microsoft.com/en-us/azure/key-vault/certificates/certificate-authority-digicert)
-  - For other CAs like SSL.com, documentation with specific manual instructions should be provided by the CA:  
-    [Generate a CSR and Install a Certificate in Microsoft Azure Key Vault - SSL.com](https://www.ssl.com/how-to/generate-a-csr-and-install-a-certificate-in-microsoft-azure-key-vault/)
+    [Integrating Key Vault with Integrated Certificate Authorities | Microsoft Learn](https://learn.microsoft.com/azure/key-vault/certificates/how-to-integrate-certificate-authority)
+  - For other CAs (for example SSL.com), create a certificate signing request (CSR) in the Key Vault, have the CA sign it, and merge the signed certificate back. Your CA provides the CA-specific steps:  
+    [Create and merge a certificate signing request in Key Vault | Microsoft Learn](https://learn.microsoft.com/azure/key-vault/certificates/create-certificate-signing-request)
 - **Note:** Moving your certificate from the CA's vault to Azure Key Vault may interfere with your other CodeSigning processes if you use the same certificate to sign different apps. Since the certificate will not be in the CA's vault anymore, codesigning for these apps should be migrated to Azure Key Vault.
 
 ### 4. Create an Entra ID App with a Service Principal
