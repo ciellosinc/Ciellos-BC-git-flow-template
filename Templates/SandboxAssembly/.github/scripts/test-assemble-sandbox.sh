@@ -407,5 +407,42 @@ check  "the project with a space keeps main's settings" contentis "Group/My Edi/
 refute "a .AL-Go folder only the request has is not" has "New/.AL-Go/settings.json"
 check  "and the run says so"                  said "taken from main"
 
+echo "27. no spelling of a pipeline folder gets past: letter case, a symlink, odd characters"
+# Written straight into the index: a case-insensitive file system would fold .al-go into .AL-Go on
+# the way, and some of these names cannot exist on a Windows disk at all.
+entry() {  # <mode> <path> <content>
+    blob="$(printf '%s\n' "$3" | git hash-object -w --stdin)"
+    git update-index --add --cacheinfo "$1,$blob,$2"
+}
+git checkout --quiet -b pr11 main
+echo "from pr11" > e2.txt && git add e2.txt
+entry 100644 "Core/.al-go/NewBcContainer.ps1" "Write-Host 'lower-case folder'"
+entry 100644 ".GitHub/AL-Go-Settings.json"    "settings in a differently spelled .github"
+entry 120000 "Evil/.AL-Go"                    "../somewhere/else"
+# Names Git for Windows refuses outright (core.protectNTFS) - they are covered where they can exist,
+# on the Linux runner GitHub uses.
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) QUOTED=""; COLON="" ;;
+    *) QUOTED='Odd"Name/.AL-Go/NewBcContainer.ps1'
+       COLON=':colon/.AL-Go/settings.json'
+       entry 100644 "$QUOTED" "Write-Host 'a name git would print in quotes'"
+       entry 100644 "$COLON"  "a name that looks like pathspec magic" ;;
+esac
+git commit --quiet -m pr11 && git push --quiet origin pr11
+git checkout --quiet -f main
+{ line 11 pr11; } > "$T/prs.tsv"
+check  "the run succeeds"                     run
+check  "the app change from pr11 is in"       has e2.txt
+refute "a lower-case .al-go folder is not"    has "Core/.al-go/NewBcContainer.ps1"
+refute "a .GitHub folder is not"              has ".GitHub/AL-Go-Settings.json"
+refute "a symlink called .AL-Go is not"       has "Evil/.AL-Go"
+check  "main's own Core/.AL-Go is untouched"  contentis "Core/.AL-Go/settings.json" 'core settings on main'
+if [ -n "$QUOTED" ]; then
+    refute "a name with a quote in it is not"   has "$QUOTED"
+    refute "a name starting with ':' is not"    has "$COLON"
+else
+    echo "  skip  names with a quote or a leading ':' (Windows cannot hold them; covered on Linux)"
+fi
+
 echo
 if [ "$FAILS" -eq 0 ]; then echo "all passed"; else echo "$FAILS failed"; exit 1; fi

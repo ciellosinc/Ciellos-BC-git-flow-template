@@ -169,9 +169,11 @@ prev_included() {
 git -C "$ROOT" fetch "$REMOTE" --prune --quiet
 
 WORK="$(mktemp -d)"
+# Path lists that must not live inside the worktree, where they would end up in the assembly.
+LISTS="$(mktemp -d)"
 cleanup() {
     git -C "$ROOT" worktree remove --force "$WORK" >/dev/null 2>&1 || true
-    rm -rf "$WORK"
+    rm -rf "$WORK" "$LISTS"
 }
 trap cleanup EXIT
 git -C "$ROOT" worktree add --detach --quiet "$WORK" "$REMOTE/$BASE"
@@ -294,32 +296,52 @@ done <<LIST
 $ORDERED
 LIST
 
-# Every pipeline folder in either tree: the root .github, and each folder named .AL-Go at any depth.
-# Both trees, because a request can add a project's .AL-Go folder that main does not have (it has to
-# go) as well as change one main has (it has to be put back). One path per line - a project folder
-# may have spaces in its name.
+# Every pipeline path in the given trees, NUL-terminated: the root .github, and every path whose
+# name has a part called .AL-Go - at any depth, the last part included (a symlink or a file by that
+# name), and in ANY letter case. A Windows runner checks .al-go/ out into the same folder as .AL-Go/,
+# so a request that adds Project/.al-go/NewBcContainer.ps1 would have AL-Go run it. The spelling the
+# tree really uses is what is printed, so exactly that is removed.
+#
+# NUL-separated from ls-tree -z to git rm/checkout, never one path per line: git puts a name with a
+# quote, a backslash or a control character in quotes when it prints one per line, and the quoted
+# text names no path at all - the folder would quietly stay.
 pipeline_paths() {  # <tree-ish>...
+    local ref f rest comp prefix
     for ref in "$@"; do
-        git -C "$WORK" -c core.quotePath=false ls-tree -r --name-only "$ref"
-    done | awk -F/ '
-        $1 == ".github" && NF > 1 { print ".github"; next }
-        { for (i = 1; i < NF; i++) if ($i == ".AL-Go") {
-              p = $1; for (j = 2; j <= i; j++) p = p "/" $j; print p; break } }' | sort -u
+        git -C "$WORK" ls-tree -r -z --name-only "$ref"
+    done | while IFS= read -r -d '' f; do
+        comp="${f%%/*}"
+        if [ "${comp,,}" = ".github" ]; then
+            printf '%s\0' "$comp"
+            continue
+        fi
+        rest="$f"; prefix=""
+        while [ -n "$rest" ]; do
+            comp="${rest%%/*}"
+            if [ "$comp" = "$rest" ]; then rest=""; else rest="${rest#*/}"; fi
+            prefix="${prefix:+$prefix/}$comp"
+            if [ "${comp,,}" = ".al-go" ]; then
+                printf '%s\0' "$prefix"
+                break
+            fi
+        done
+    done | sort -zu
 }
 
-# Put the pipeline back to what main has. Removing first and checking out after restores it
-# exactly: a plain checkout would bring back what a request changed or deleted, but leave the
-# files it added. `ls-tree` rather than `rev:path`, which Git Bash rewrites into a Windows path.
-PIPELINE_PATHS="$(pipeline_paths HEAD "$REMOTE/$BASE")"
-while IFS= read -r path; do
-    [ -n "$path" ] || continue
-    git -C "$WORK" rm -r --quiet --ignore-unmatch -- "$path" >/dev/null
-    if [ -n "$(git -C "$WORK" ls-tree --name-only "$REMOTE/$BASE" -- "$path")" ]; then
-        git -C "$WORK" checkout --quiet "$REMOTE/$BASE" -- "$path"
-    fi
-done <<PATHS
-$PIPELINE_PATHS
-PATHS
+# Put the pipeline back to what main has: remove every pipeline path of the assembly, then check out
+# main's. Removing first and checking out after restores it exactly: a plain checkout would bring
+# back what a request changed or deleted, but leave the files it added. --literal-pathspecs, so a
+# name that starts with ':' or holds a '*' is a name, not pathspec magic.
+pipeline_paths HEAD > "$LISTS/remove"
+pipeline_paths "$REMOTE/$BASE" > "$LISTS/restore"
+if [ -s "$LISTS/remove" ]; then
+    git -C "$WORK" --literal-pathspecs rm -r --quiet --ignore-unmatch \
+        --pathspec-from-file="$LISTS/remove" --pathspec-file-nul >/dev/null
+fi
+if [ -s "$LISTS/restore" ]; then
+    git -C "$WORK" --literal-pathspecs checkout --quiet "$REMOTE/$BASE" \
+        --pathspec-from-file="$LISTS/restore" --pathspec-file-nul
+fi
 if ! git -C "$WORK" diff --cached --quiet; then
     echo "  pipeline files ($PIPELINE_DESC) taken from main - what pull requests change there does not reach the sandbox"
     # shellcheck disable=SC2086
