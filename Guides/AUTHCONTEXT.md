@@ -49,7 +49,7 @@ AL-Go looks for the secret under these names, in this order, and uses the first 
 2. `<EnvironmentName>_AuthContext`
 3. `AuthContext` (shared fallback for all environments)
 
-`<EnvironmentName>` is the name of the **GitHub environment** (the name in Settings -> Environments, or in the `environments` setting), for example `TEST_AuthContext`. It is not the BC environment name when the two differ: with a GitHub environment `MyProject-Test` and `"DeployToMyProject-Test": { "EnvironmentName": "TEST" }`, the secret is `MyProject-Test_AuthContext`. Use one secret per environment. If a per-environment secret is missing, AL-Go **silently** falls back to the shared `AuthContext` secret, and the environment is deployed with the wrong credentials.
+`<EnvironmentName>` is the name of the **GitHub environment** (the name in Settings -> Environments, or in the `environments` setting), for example `TEST_AuthContext`. It is not the BC environment name when the two differ: with a GitHub environment `MyProject_Test` and `"DeployToMyProject_Test": { "EnvironmentName": "TEST" }`, the repository secret is `MyProject_Test_AuthContext`. GitHub secret names cannot contain hyphens; for a GitHub environment named `MyProject-Test`, use the environment-scoped `AUTHCONTEXT` alternative below instead. Use one secret per environment. If a per-environment secret is missing, AL-Go **silently** falls back to the shared `AuthContext` secret, and the environment is deployed with the wrong credentials.
 
 The secret can also be stored as a secret named `AUTHCONTEXT` inside a **GitHub Environment** with the same name. GitHub Environments in private repositories need a paid GitHub plan. On the free plan, use repository secrets.
 
