@@ -39,7 +39,7 @@ choco feature enable -n allowGlobalConfirmation
 
 #Use Choco
 #Install Git
-choco install -y -n allowGlobalConfirmation git.install --force
+choco install git.install -y
 #Install VSCode
 choco install vscode.install --force
 #Install VSCode Extensions
