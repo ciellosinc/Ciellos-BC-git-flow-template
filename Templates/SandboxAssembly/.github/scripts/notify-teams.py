@@ -19,7 +19,7 @@ Inputs, from the environment:
   SANDBOX_REMOVED     "<number>:<draft|closed|removed> ..." - requests that left it
   CHANGES_KNOWN       "0" when mark-sandbox-deployed.sh could not read the previous state
   DEPLOYED_SHA        the assembly that was deployed
-  RUN_URL             the CI/CD run that deployed it
+  RUN_ID, RUN_URL     the CI/CD run that deployed it - its artifacts give the build version
   SANDBOX_URL         optional: the BC Sandbox, for an "Open the Sandbox" button
   GITHUB_REPOSITORY, GITHUB_SERVER_URL - set by GitHub Actions
 
@@ -55,16 +55,42 @@ def parse(text, sep):
     return rows
 
 
+def gh(*args):
+    """The output of a gh call, or None when it fails."""
+    try:
+        # shutil.which honours PATHEXT on Windows, where a plain "gh" would only ever find gh.exe.
+        return subprocess.run([shutil.which("gh") or "gh", *args],
+                              check=True, capture_output=True, text=True, encoding="utf-8",
+                              stdin=subprocess.DEVNULL).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
 def pr_title(number):
     """The title of a pull request, or None - a missing title only costs the line its text."""
     try:
-        # shutil.which honours PATHEXT on Windows, where a plain "gh" would only ever find gh.exe.
-        out = subprocess.run([shutil.which("gh") or "gh", "pr", "view", number, "--json", "title"],
-                             check=True, capture_output=True, text=True, encoding="utf-8",
-                             stdin=subprocess.DEVNULL).stdout
-        return json.loads(out).get("title")
-    except (OSError, subprocess.CalledProcessError, ValueError):
+        return json.loads(gh("pr", "view", number, "--json", "title") or "").get("title")
+    except ValueError:
         return None
+
+
+def build_version(repo, run_id):
+    """
+    The version AL-Go built in the run, e.g. "1.4.513.0", or None. AL-Go puts it at the end of the
+    name of every artifact ("<repo>-<branch>-Apps-1.4.513.0"), whatever versioningStrategy made
+    it, so it is read from there rather than worked out from the run number. Projects with
+    different versions are all listed.
+    """
+    if not (repo and run_id.isdigit()):
+        return None
+    try:
+        artifacts = json.loads(gh("api", f"repos/{repo}/actions/runs/{run_id}/artifacts") or "")
+        names = [a.get("name", "") for a in artifacts.get("artifacts", [])]
+    except (ValueError, AttributeError):
+        return None
+    found = sorted({m.group(1) for n in names
+                    if (m := re.search(r"-Apps-(\d+(?:\.\d+){1,3})$", n))})
+    return ", ".join(found) or None
 
 
 def md(text):
@@ -75,7 +101,7 @@ def md(text):
     return text
 
 
-def card(added, removed, repo_url, assembly, run_url, sandbox_url):
+def card(added, removed, repo_url, deployed, run_url, sandbox_url):
     def line(number, tail):
         title = pr_title(number)
         text = f"- [#{number}]({repo_url}/pull/{number})"
@@ -85,7 +111,7 @@ def card(added, removed, repo_url, assembly, run_url, sandbox_url):
 
     body = [
         {"type": "TextBlock", "text": "Sandbox changed", "weight": "Bolder", "size": "Medium"},
-        {"type": "TextBlock", "text": f"Assembly `{assembly}` is deployed.", "isSubtle": True,
+        {"type": "TextBlock", "text": f"{deployed} is deployed.", "isSubtle": True,
          "spacing": "None", "wrap": True},
     ]
     if added:
@@ -144,10 +170,14 @@ def main(argv):
         print("no request came into the Sandbox or left it - no Teams notification")
         return 0
 
-    repo_url = (os.environ.get("GITHUB_SERVER_URL", "https://github.com").rstrip("/") + "/"
-                + os.environ.get("GITHUB_REPOSITORY", ""))
-    assembly = os.environ.get("DEPLOYED_SHA", "")[:7]
-    payload = card(added, removed, repo_url, assembly, os.environ.get("RUN_URL", ""),
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    repo_url = os.environ.get("GITHUB_SERVER_URL", "https://github.com").rstrip("/") + "/" + repo
+    # The build version is what people find in BC (Extension Management); the assembly commit is
+    # the fallback when the run's artifacts cannot be read.
+    version = build_version(repo, os.environ.get("RUN_ID", ""))
+    deployed = (f"Build `{version}`" if version
+                else f"Assembly `{os.environ.get('DEPLOYED_SHA', '')[:7]}`")
+    payload = card(added, removed, repo_url, deployed, os.environ.get("RUN_URL", ""),
                    os.environ.get("SANDBOX_URL", "").strip())
 
     if dry:

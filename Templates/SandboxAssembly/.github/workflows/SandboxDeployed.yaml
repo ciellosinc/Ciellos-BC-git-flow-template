@@ -65,5 +65,6 @@ jobs:
           SANDBOX_REMOVED: ${{ steps.mark.outputs.removed }}
           CHANGES_KNOWN: ${{ steps.mark.outputs.changes_known }}
           DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: python3 .github/scripts/notify-teams.py

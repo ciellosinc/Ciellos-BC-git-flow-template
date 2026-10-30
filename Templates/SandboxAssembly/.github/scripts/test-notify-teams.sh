@@ -24,13 +24,21 @@ refute() {  # <description> <command...> - the command must fail
 }
 
 # The stub gh knows the title of #1 - with characters that are Markdown in a card - and of #9, and
-# fails for every other request, so the line has to do without.
+# fails for every other request, so the line has to do without. It knows the artifacts of run 77,
+# named the way AL-Go names them, and of run 78, which has none of AL-Go's.
 mkdir -p "$T/bin"
 cat > "$T/bin/gh" <<'STUB'
 #!/usr/bin/env bash
-case "$1 $2 $3" in
-    "pr view 1") echo '{"title":"AB#1 Lots [x] and *stars* on_lines"}' ;;
-    "pr view 9") echo '{"title":"AB#9 Shortage allocation"}' ;;
+case "$1 $2" in
+    "pr view")  case "$3" in
+                    1) echo '{"title":"AB#1 Lots [x] and *stars* on_lines"}' ;;
+                    9) echo '{"title":"AB#9 Shortage allocation"}' ;;
+                    *) exit 1 ;;
+                esac ;;
+    "api repos/org/repo/actions/runs/77/artifacts")
+        echo '{"total_count":3,"artifacts":[{"name":"repo-sandbox_current-Apps-1.4.513.0"},{"name":"repo-sandbox_current-TestApps-1.4.513.0"},{"name":"repo-sandbox_current-BuildOutput-1.4.513.0"}]}' ;;
+    "api repos/org/repo/actions/runs/78/artifacts")
+        echo '{"total_count":1,"artifacts":[{"name":"something-else"}]}' ;;
     *) exit 1 ;;
 esac
 STUB
@@ -44,7 +52,7 @@ esac
 # Note for the expressions below: Git Bash rewrites a quoted text that starts with "/" into a Windows
 # path on its way to python.exe, so they search for "repo/pull/7)", never for "/pull/7)".
 export PATH="$T/bin:$PATH" GITHUB_REPOSITORY=org/repo GITHUB_SERVER_URL=https://github.com \
-       RUN_URL=https://example.test/runs/77 DEPLOYED_SHA=abcdef0123456789
+       RUN_ID=77 RUN_URL=https://example.test/runs/77 DEPLOYED_SHA=abcdef0123456789
 unset TEAMS_WEBHOOK_URL SANDBOX_URL SANDBOX_ADDED SANDBOX_REMOVED CHANGES_KNOWN || true
 
 notify() { "$PY" "$SCRIPT" "$@" > "$T/out.txt" 2>&1; }
@@ -66,7 +74,8 @@ echo "1. a request new in the Sandbox, and requests that left it"
 export SANDBOX_ADDED="1@aaaaaaa 2@bbbbbbb" SANDBOX_REMOVED="9:draft 7:closed 5:removed"
 check  "a dry run succeeds"                         notify --dry-run
 check  "it is a Teams message with an Adaptive Card" payload "$T/out.txt" 'p["type"] == "message" and p["attachments"][0]["contentType"] == "application/vnd.microsoft.card.adaptive"'
-check  "it names the assembly"                      payload "$T/out.txt" '"Assembly `abcdef0` is deployed." in text'
+check  "it names the build version AL-Go built"     payload "$T/out.txt" '"Build `1.4.513.0` is deployed." in text'
+refute "and not the assembly commit"                payload "$T/out.txt" '"abcdef0" in text'
 check  "two requests are new"                       payload "$T/out.txt" '"New in the Sandbox (2)" in text'
 check  "#1 links to its pull request, with its commit" payload "$T/out.txt" '"[#1](https://github.com/org/repo/pull/1)" in text and "`aaaaaaa`" in text'
 check  "#1 carries its title, Markdown escaped"     payload "$T/out.txt" 'r"Lots \[x\] and \*stars\* on\_lines" in text'
@@ -79,6 +88,11 @@ check  "a button opens the CI/CD run"               payload "$T/out.txt" 'any(a[
 refute "no Sandbox button without SANDBOX_URL"      payload "$T/out.txt" 'any(a["title"] == "Open the Sandbox" for a in c["actions"])'
 SANDBOX_URL=https://businesscentral.dynamics.com/t/Sandbox notify --dry-run
 check  "with SANDBOX_URL there is a Sandbox button" payload "$T/out.txt" 'any(a["title"] == "Open the Sandbox" for a in c["actions"])'
+
+RUN_ID=78 notify --dry-run
+check  "a run without AL-Go artifacts: the assembly commit instead" payload "$T/out.txt" '"Assembly `abcdef0` is deployed." in text'
+RUN_ID=99 notify --dry-run
+check  "artifacts that cannot be read: the assembly commit too" payload "$T/out.txt" '"Assembly `abcdef0` is deployed." in text'
 
 echo "2. only one side changed: only that section is on the card"
 SANDBOX_ADDED="" SANDBOX_REMOVED="9:draft" notify --dry-run
