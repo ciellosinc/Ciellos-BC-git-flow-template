@@ -126,3 +126,7 @@ sequenceDiagram
     - Merge changes back to the branches `release` and `main`. It is necessary to make PR and merge to the `main` branch because we would like to save the fix for the next releases
     - Do not forget to delete the `hotfix` branch after moving changes to the `main` and `release` branches
 
+## Alternative strategy
+
+> [!TIP]
+> **[Sandbox Assembly Flow](BranchFlow-SandboxAssembly.md).** Every open pull request is deployed to a shared BC Sandbox and verified there *before* it is merged to `main`; there are no `hotfix` branches. Developers no longer take turns publishing to one sandbox and overwriting each other's builds: all ready pull requests are in it at once. Choose it when several features run in parallel and each one has to be accepted in BC before it reaches `main`. The guide compares both flows.

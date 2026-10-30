@@ -1,0 +1,168 @@
+# The merge gate for "this was verified in the BC sandbox".
+#
+# Once a pull request is deployed in the Sandbox, the Sandbox Deployed workflow labels it
+# 'in-sandbox' and comments which commit was deployed - that is a fact about the environment. This
+# workflow is about the decision: a person looked at that deployment in BC and is content. They record it either way round, whichever is closer to hand:
+#
+#   * tick "Verified in the BC sandbox" in the request body (the pull request template puts it
+#     there), or
+#   * add the 'sandbox-tested' label.
+#
+# A new push clears both. What was approved is a commit, not a branch: leaving the verdict in place
+# across a push would let unreviewed code inherit someone else's approval - which is the exact
+# failure this whole gate exists to prevent.
+#
+# A verdict is asked for only when the change can reach BC - when the diff touches a file that ends
+# up in a .app. Pipeline and documentation changes are exempt because there is nothing a sandbox
+# could show about them, and AL-Go's own update requests fall out of that naturally: they touch
+# .github and .AL-Go and nothing else.
+#
+# That test is on the diff rather than on who opened the request, and deliberately so. An earlier
+# version exempted a branch name prefix, which anyone with write access can simply type; and the
+# tempting "no checkbox in the body means automation" is worse still, because `gh pr create
+# --body-file` produces a body without one just as readily as a bot does. Both make the gate fail
+# open on a value the author controls. The file list is not a claim about the change - it is the
+# change.
+#
+# Body and labels are read back from the API rather than from the event payload, because the payload
+# is a snapshot taken before the clearing step below runs.
+#
+# pull_request_target rather than pull_request: this workflow always runs as it is on the base branch,
+# so a request that edits this file cannot change the gate it is judged by. That is safe only because
+# nothing from the request is executed here - its files are listed through the API and its AL-Go
+# settings are read as data (git show), never checked out or run. Keep it that way: never check out
+# the head of the request in this workflow, and never run a script from it.
+name: Sandbox tested
+
+on:
+  pull_request_target:
+    types: [opened, reopened, labeled, unlabeled, edited, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+env:
+  MARK: Verified in the BC sandbox
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: A new push clears the previous verdict
+        if: github.event.action == 'synchronize'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr edit "$PR" --repo "$REPO" --remove-label sandbox-tested || true
+
+          gh pr view "$PR" --repo "$REPO" --json body --jq .body > body.md
+          if grep -qE "^[[:space:]]*-[[:space:]]*\[x\] $MARK" body.md; then
+            # Anchored to the start of a line, so the phrase quoted inside prose or a fenced block
+            # is not mistaken for the checkbox. A line address rather than a backreference: a
+            # captured group here is one escaping layer away from writing a control character into
+            # the body instead of the dash.
+            sed -i -E "/^[[:space:]]*-[[:space:]]*\[x\] $MARK/ s/\[x\]/[ ]/" body.md
+            gh pr edit "$PR" --repo "$REPO" --body-file body.md || true
+            echo "Cleared the tick: new commits have not been verified."
+          fi
+
+      # The base of the request, never its head (see the top of this file): the script that decides
+      # comes from the base branch, so a request cannot change the rule it is judged by. The head is
+      # only fetched, and only read as data (git show) for its AL-Go settings.
+      - name: Check out the base of the pull request
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+
+      - name: Decide whether this change can reach BC
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh pr diff "$PR" --repo "$REPO" --name-only > files.txt
+          echo "changed files:"; sed 's/^/  /' files.txt
+
+          # A file ships when it lies in a folder AL-Go builds - appFolders, testFolders and
+          # bcptTestFolders of the AL-Go settings, on the base and on the head of the request
+          # together. Only documentation and scripts in docs/ and scripts/ inside an app folder are
+          # exempt; an .al file there is compiled like any other.
+          git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null \
+            || git fetch --quiet origin "refs/pull/${PR}/head"
+          echo "app folders:"
+          python3 .github/scripts/sandbox-app-folders.py "$BASE_SHA" "$HEAD_SHA" | sed 's/^/  /' || true
+
+          if ! shipped=$(python3 .github/scripts/sandbox-app-folders.py --shipped files.txt "$BASE_SHA" "$HEAD_SHA"); then
+            # Settings that cannot be read, or no script on the base branch yet (the request that
+            # adds it): every changed file counts. Asking for a verdict that was not needed costs a
+            # tick; skipping one that was is what this gate exists to prevent.
+            echo "Could not work out the app folders - treating every changed file as one that reaches BC."
+            shipped=$(cat files.txt)
+          fi
+
+          if [ -n "$shipped" ]; then
+            echo "verdict_needed=true" >> "$GITHUB_OUTPUT"
+            echo "Reaches BC:"; echo "$shipped" | sed 's/^/  /'
+          else
+            echo "verdict_needed=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing here reaches a .app - no sandbox verdict required."
+          fi
+
+      # The verdict is published as a commit status on the head commit, and this job stays green.
+      #
+      # Failing the job is how "not verified yet" used to be expressed, and it cost a "workflow run
+      # failed" email on every new pull request: the first run of this gate is red by design, so
+      # that mail was guaranteed noise, and noise teaches people to ignore the mails that matter. A
+      # commit status sits in the same checks list and branch protection can require it just the
+      # same, but it carries no workflow conclusion, so GitHub sends nothing.
+      #
+      # Pending rather than failure while a verdict is missing: nobody has done anything wrong, the
+      # verdict simply is not there yet. The status is written against the head SHA, so a push
+      # starts from no status at all and this run sets it again for the new commit - the same rule
+      # as the clearing step above, that a verdict belongs to a commit and not to a branch.
+      #
+      # The context is 'sandbox-verdict', not 'gate': the job itself is still reported as
+      # "Sandbox tested / gate", and two entries under one name would be unreadable.
+      #
+      # Body and labels are read in two separate queries. Read into one file, a line in the body
+      # that just says "sandbox-tested" would pass for the label.
+      - name: Publish the verdict as a commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          NEEDED: ${{ steps.scope.outputs.verdict_needed }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          state=success
+          description="No sandbox verdict required: nothing here reaches a .app."
+
+          if [ "$NEEDED" = "true" ]; then
+            gh pr view "$PR" --repo "$REPO" --json body --jq '.body' > body.md
+            gh pr view "$PR" --repo "$REPO" --json labels --jq '.labels[].name' > labels.txt
+
+            if grep -qE "^[[:space:]]*-[[:space:]]*\[x\] $MARK" body.md; then
+              description="Verified in the sandbox: the box is ticked in the description."
+            elif grep -qx 'sandbox-tested' labels.txt; then
+              description="Verified in the sandbox: the sandbox-tested label is set."
+            else
+              state=pending
+              description="Look at this commit in the BC sandbox, then tick \"$MARK\" in the description."
+            fi
+          fi
+
+          echo "$state: $description"
+          gh api "repos/$REPO/statuses/$SHA" \
+            -f state="$state" \
+            -f context=sandbox-verdict \
+            -f description="$description" \
+            -f target_url="$RUN_URL" > /dev/null
