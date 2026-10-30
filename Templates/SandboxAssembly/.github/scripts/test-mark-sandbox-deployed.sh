@@ -51,7 +51,8 @@ NOT_A_MANIFEST="$(git rev-parse HEAD)"
 
 # The stub gh. Answers come from files so each case can set them up:
 #   $GH_JOBS      what `gh run view --json jobs` prints (one "name<TAB>conclusion" per line)
-#   $GH_LABELLED  what `gh pr list --label in-sandbox` prints (one number per line)
+#   $GH_LABELLED  what `gh pr list --state open --label in-sandbox` prints ("number<TAB>isDraft")
+#   $GH_CLOSED    what `gh pr list --state closed --label in-sandbox` prints ("number<TAB>merged")
 #   $GH_COMMENTS  what `gh pr view N --json comments` prints
 mkdir -p "$T/bin"
 cat > "$T/bin/gh" <<'STUB'
@@ -63,7 +64,10 @@ cat > "$T/bin/gh" <<'STUB'
 } >> "$GH_LOG"
 case "$1 $2" in
     "run view") cat "$GH_JOBS" ;;
-    "pr list")  cat "$GH_LABELLED" ;;
+    "pr list")  case " $* " in
+                    *" closed "*) cat "$GH_CLOSED" ;;
+                    *)            cat "$GH_LABELLED" ;;
+                esac ;;
     "pr view")  cat "$GH_COMMENTS" ;;
 esac
 for a in "$@"; do
@@ -75,7 +79,9 @@ exit 0
 STUB
 chmod +x "$T/bin/gh"
 
-export GH_JOBS="$T/jobs.txt" GH_LABELLED="$T/labelled.txt" GH_COMMENTS="$T/comments.txt"
+export GH_JOBS="$T/jobs.txt" GH_LABELLED="$T/labelled.txt" GH_COMMENTS="$T/comments.txt" \
+       GH_CLOSED="$T/closed.txt"
+: > "$GH_CLOSED"
 deployed() { printf 'Initialization\tsuccess\nDeploy to Sandbox\t%s\n' "$1" > "$GH_JOBS"; }
 run() {  # <log file> <sha>
     : > "$1"
@@ -147,6 +153,43 @@ deployed success
 : > "$T/ghout.txt"
 GITHUB_OUTPUT="$T/ghout.txt" run "$T/7.log" "$NOT_A_MANIFEST"
 refute "a commit that is not a manifest does not"  grep -q "deployed" "$T/ghout.txt"
+
+echo "8. the change since the previous deployment: new requests, and the ones that left - not merged ones"
+# Before: #2 (still in), #9 (now a draft), #5 (open, ready, but not in this assembly - forced out)
+# carry the label. #7 was closed without a merge and #8 was merged, both still labelled.
+# This assembly includes #1 (new) and #2.
+deployed success
+printf '2\tfalse\n9\ttrue\n5\tfalse\n' > "$GH_LABELLED"
+printf '7\tfalse\n8\ttrue\n' > "$GH_CLOSED"
+: > "$T/ghout.txt"
+GITHUB_OUTPUT="$T/ghout.txt" run "$T/8.log" "$WITH_TWO"
+check  "#1 is new, with the commit deployed"       grep -qx "added=1@aaaaaaa" "$T/ghout.txt"
+check  "#9 left as a draft, #5 removed, #7 closed" grep -qx "removed=9:draft 5:removed 7:closed" "$T/ghout.txt"
+check  "the previous state was known"              grep -qx "changes_known=1" "$T/ghout.txt"
+check  "#7, closed without a merge, loses the label" logged "$T/8.log" "gh pr edit 7 --remove-label in-sandbox"
+refute "#8, merged, keeps it as a record"          logged "$T/8.log" "gh pr edit 8"
+refute "and #8 is not reported anywhere"           grep -qE '(^|[ =])8[@:]' "$T/ghout.txt"
+check  "closed requests are only looked for in the last week" logged "$T/8.log" "--search closed:>="
+
+echo "9. the same set again: nothing is new and nothing left"
+printf '1\tfalse\n2\tfalse\n' > "$GH_LABELLED"; : > "$GH_CLOSED"
+: > "$T/ghout.txt"
+GITHUB_OUTPUT="$T/ghout.txt" run "$T/9.log" "$WITH_TWO"
+check  "added is empty"                            grep -qx "added=" "$T/ghout.txt"
+check  "removed is empty"                          grep -qx "removed=" "$T/ghout.txt"
+
+echo "10. a previous state that cannot be read reports no change at all"
+# A stub in front of the usual one that fails the open-request query only: the labels are still
+# put right.
+mkdir -p "$T/bin2" && cp "$T/bin/gh" "$T/bin2/gh.real"
+printf '#!/usr/bin/env bash\ncase " $* " in *" --state open "*) exit 1 ;; esac\nexec "$(dirname "$0")/gh.real" "$@"\n' > "$T/bin2/gh"
+chmod +x "$T/bin2/gh" "$T/bin2/gh.real"
+: > "$T/ghout.txt"; : > "$T/10.log"
+GH_LOG="$T/10.log" PATH="$T/bin2:$PATH" GITHUB_OUTPUT="$T/ghout.txt" DEPLOYED_SHA="$WITH_TWO" RUN_ID=77 \
+    RUN_URL="https://example.test/runs/77" bash "$SCRIPT" > "$T/out.txt" 2>&1
+check  "the run still succeeds and deploys"        grep -qx "deployed=true" "$T/ghout.txt"
+check  "but says the change is unknown"            grep -qx "changes_known=0" "$T/ghout.txt"
+check  "the deployed requests still get the label" logged "$T/10.log" "gh pr edit 1 --add-label in-sandbox"
 
 echo
 if [ "$FAILS" -eq 0 ]; then echo "all passed"; else echo "$FAILS failed"; exit 1; fi

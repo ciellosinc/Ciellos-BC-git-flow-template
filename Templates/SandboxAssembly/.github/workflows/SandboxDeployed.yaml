@@ -51,15 +51,19 @@ jobs:
         run: bash .github/scripts/mark-sandbox-deployed.sh
 
       # Optional: without the TEAMS_WEBHOOK_URL secret the script says so and does nothing. It only
-      # runs when the step above confirmed a real deployment of a manifest, and it cannot turn the
-      # run red - a Teams outage is not a reason to report a good deployment as failed.
-      - name: Tell the Teams channel what is in the Sandbox now
+      # runs when the step above confirmed a real deployment, and posts only when a request came
+      # into the Sandbox or left it (not for a merge into main). It cannot turn the run red - a
+      # Teams outage is not a reason to report a good deployment as failed.
+      - name: Tell the Teams channel what changed in the Sandbox
         if: steps.mark.outputs.deployed == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
           SANDBOX_URL: ${{ vars.SANDBOX_URL }}
+          SANDBOX_ADDED: ${{ steps.mark.outputs.added }}
+          SANDBOX_REMOVED: ${{ steps.mark.outputs.removed }}
+          CHANGES_KNOWN: ${{ steps.mark.outputs.changes_known }}
           DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: python3 .github/scripts/notify-teams.py

@@ -71,7 +71,7 @@ flowchart TD
 2. **Open a pull request** to `main` early. Open it as a **draft** while the work should not be in the Sandbox yet. Marking a PR as draft is the normal way to keep it out.
 3. **Pull Request Build** runs. A PR is *ready* for the Sandbox when it is open against `main`, is not a draft, does not come from a fork, and its head commit passed **Pull Request Status Check**.
 4. **Assemble Sandbox** rebuilds `sandbox/current`: it starts from `main` and merges the head commit of every ready PR: first the ones that are in the Sandbox already, then the newcomers by PR number. It runs after every PR build, every push to `main`, and every time a PR is closed, reopened, or switched between draft and ready.
-5. **CI/CD** builds `sandbox/current` and deploys it to the Sandbox. **Sandbox Deployed** then labels the included PRs `in-sandbox` and comments which commit was deployed, so the tester knows exactly what they are looking at. The label follows the real deployment: a build that fails does not set it. If a Teams channel is connected, it gets a card with everything that is in the Sandbox now and what was left out, with links to the PRs and to the Sandbox.
+5. **CI/CD** builds `sandbox/current` and deploys it to the Sandbox. **Sandbox Deployed** then labels the included PRs `in-sandbox` and comments which commit was deployed, so the tester knows exactly what they are looking at. The label follows the real deployment: a build that fails does not set it. If a Teams channel is connected and the set of PRs in the Sandbox changed, it gets a card: the PRs that are new in the Sandbox, and the ones that left it because they were marked as draft, closed, or removed. A PR that left because it was merged into `main`, and a new commit to a PR that is already in, post nothing.
 6. **Verify in BC.** The developer, consultant or customer checks the change in the Sandbox and records the verdict in one of two ways: tick **Verified in the BC sandbox** in the PR description (the PR template contains the checkbox), or add the label `sandbox-tested`. The **Sandbox tested** workflow turns that into the commit status `sandbox-verdict`.
 7. **Review and merge.** After code review, **Squash and Merge** to `main`. `CI/CD` deploys `main` to UAT, and the next assembly is rebuilt on the new `main`.
 8. **Production.** Run **Publish To Environment** for Production from `main` when the customer has accepted the changes in UAT.
@@ -241,7 +241,7 @@ The folder contains:
 | `.github/workflows/AssembleSandbox.yaml` | End of every **Pull Request Build**; push to `main`; PR closed, reopened, converted to draft or ready for review; manual run with a **force** input | Runs the assembly script. One run at a time (`concurrency`, no cancelling). |
 | `.github/scripts/assemble-sandbox.sh` | — | Lists the open PRs, decides which are ready, merges them onto `main` in a temporary worktree, restores `.github` and `.AL-Go` from `main`, writes a manifest commit (`Included:` / `Skipped:`), applies the guards and force-pushes `sandbox/current`. Comments on skipped or held PRs. Has a `--dry-run` mode. |
 | `.github/workflows/SandboxDeployed.yaml` | End of **CI/CD** on `sandbox/current` | Runs the labelling script, then the Teams notification. |
-| `.github/scripts/notify-teams.py` | — | Optional. Posts an Adaptive Card to a Teams channel: the PRs in the Sandbox now (with titles and the deployed commit), the ones left out and why, and buttons for the Sandbox, the PR list and the CI/CD run. Does nothing without the `TEAMS_WEBHOOK_URL` secret, and never fails the run. |
+| `.github/scripts/notify-teams.py` | — | Optional. Posts an Adaptive Card to a Teams channel only when the set of PRs in the Sandbox changes: the PRs that are new in it (with title and deployed commit), and the ones that left it as draft, closed or removed. Merges into `main` are not reported. Buttons for the Sandbox, the PR list and the CI/CD run. Does nothing without the `TEAMS_WEBHOOK_URL` secret, and never fails the run. |
 | `.github/scripts/mark-sandbox-deployed.sh` | — | Checks that the **Deploy to Sandbox** job really succeeded, reads the manifest commit, sets `in-sandbox` on the included PRs (with a comment naming the deployed commit) and removes it from the others. |
 | `.github/workflows/SandboxTested.yaml` | `pull_request_target`: opened, reopened, edited, labeled, unlabeled, synchronize | Clears the verdict on a new push, decides from the changed files whether a verdict is needed, and publishes the `sandbox-verdict` commit status. |
 | `.github/scripts/sandbox-app-folders.py` | — | Reads the AL-Go settings of the base and the head of the PR and works out which changed files lie in a folder AL-Go builds. Follows AL-Go's own rules (see below). |
@@ -314,11 +314,11 @@ They decide what is deployed to a shared environment, and a mistake there costs 
    ```
 
    A newer push then cancels the run that is still building an older version of the same branch.
-6. Optional: **Teams notification** after every Sandbox deploy.
+6. Optional: **Teams notification** when PRs come into the Sandbox or leave it (not on every deploy, and not for merges into `main`). The previous state is taken from the `in-sandbox` labels, so nothing extra is stored.
    1. In Teams, open the channel, choose **⋯** -> **Workflows**, and pick the template **Send webhook alerts to a channel**. Copy the webhook URL it shows at the end. (The old *Incoming Webhook* connectors were retired in May 2026; only Workflows webhooks work.)
    2. Store the URL as the repository secret `TEAMS_WEBHOOK_URL`. Anyone who has it can post to the channel.
    3. Optionally, store the Sandbox URL (`https://businesscentral.dynamics.com/<tenant>/Sandbox`) as the repository **variable** `SANDBOX_URL`, for an **Open the Sandbox** button on the card.
-   4. Check the card without posting it: `DEPLOYED_SHA=origin/sandbox/current python3 .github/scripts/notify-teams.py --dry-run` prints the payload.
+   4. Check the card without posting it: `SANDBOX_ADDED="12@abc1234" SANDBOX_REMOVED="15:draft" python3 .github/scripts/notify-teams.py --dry-run` prints the payload. Paste it into the [Adaptive Cards Designer](https://adaptivecards.io/designer/) (host app: Microsoft Teams) to see it.
 
 ## When to choose this flow
 

@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 """
-Posts to a Teams channel what is in the Sandbox right now, after a deployment of sandbox/current.
-Run by the "Sandbox Deployed" workflow once mark-sandbox-deployed.sh has confirmed that the
-"Deploy to Sandbox" job really succeeded - testers learn what they can look at without opening
-GitHub.
+Tells a Teams channel when the set of pull requests in the Sandbox changes: which requests are new
+in it, and which left it because they were marked as draft, closed, or removed. Run by the
+"Sandbox Deployed" workflow after mark-sandbox-deployed.sh has confirmed a real deployment and
+worked out what changed.
 
   notify-teams.py             # post it
   notify-teams.py --dry-run   # print the payload, post nothing
 
+Only changes are posted, never the full list. A new commit to a request that is in the Sandbox
+already, or a request that left because it was merged into main, changes nothing anyone needs to
+hear about in a channel - the request itself gets a comment either way. No change, no card.
+
 Inputs, from the environment:
   TEAMS_WEBHOOK_URL   the URL of a Teams Workflows webhook ("Send webhook alerts to a channel").
                       Not set: nothing is posted - the notification is optional.
-  DEPLOYED_SHA        the manifest commit assemble-sandbox.sh wrote, as deployed
+  SANDBOX_ADDED       "<number>@<sha> ..." - requests that are new in the Sandbox
+  SANDBOX_REMOVED     "<number>:<draft|closed|removed> ..." - requests that left it
+  CHANGES_KNOWN       "0" when mark-sandbox-deployed.sh could not read the previous state
+  DEPLOYED_SHA        the assembly that was deployed
   RUN_URL             the CI/CD run that deployed it
   SANDBOX_URL         optional: the BC Sandbox, for an "Open the Sandbox" button
   GITHUB_REPOSITORY, GITHUB_SERVER_URL - set by GitHub Actions
@@ -24,45 +31,28 @@ Nothing here may turn a good deployment red: every outcome exits 0 and says what
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import urllib.error
 import urllib.request
 
-MANIFEST_PREFIX = "sandbox/current: assembled from"
+WHY = {
+    "draft": "marked as draft",
+    "closed": "closed without a merge",
+    "removed": "removed from the Sandbox",
+}
 
 
-def git(*args):
-    return subprocess.run(["git", *args], check=True, capture_output=True, text=True,
-                          encoding="utf-8").stdout
-
-
-def manifest(sha):
-    """The Included and Skipped rows of a manifest commit, or None if sha is not one."""
-    try:
-        body = git("log", "-1", "--format=%B", sha).replace("\r", "")
-    except subprocess.CalledProcessError:
-        return None
-    if not body.startswith(MANIFEST_PREFIX):
-        return None
-    header = body.splitlines()[0]
-    included, skipped, section = [], [], None
-    for line in body.splitlines()[1:]:
-        if line.startswith("Included:"):
-            section = included
-            continue
-        if line.startswith("Skipped:"):
-            section = skipped
-            continue
-        # "  #12 feature/x @ abc1234" or, under Skipped, "... @ abc1234 - reason"
-        fields = line.split()
-        if section is None or len(fields) < 4 or not fields[0].startswith("#") or fields[2] != "@":
-            continue
-        reason = line.split(" - ", 1)[1] if " - " in line else ""
-        section.append({"number": fields[0][1:], "branch": fields[1], "sha": fields[3],
-                        "reason": reason})
-    return header, included, skipped
+def parse(text, sep):
+    """'118@4f1c2aa 121@9be03d1' -> [('118', '4f1c2aa'), ...]; anything malformed is dropped."""
+    rows = []
+    for item in text.split():
+        number, _, value = item.partition(sep)
+        if number.isdigit() and re.fullmatch(r"[A-Za-z0-9]+", value or "x"):
+            rows.append((number, value))
+    return rows
 
 
 def pr_title(number):
@@ -70,8 +60,7 @@ def pr_title(number):
     try:
         # shutil.which honours PATHEXT on Windows, where a plain "gh" would only ever find gh.exe.
         out = subprocess.run([shutil.which("gh") or "gh", "pr", "view", number, "--json", "title"],
-                             check=True,
-                             capture_output=True, text=True, encoding="utf-8",
+                             check=True, capture_output=True, text=True, encoding="utf-8",
                              stdin=subprocess.DEVNULL).stdout
         return json.loads(out).get("title")
     except (OSError, subprocess.CalledProcessError, ValueError):
@@ -86,30 +75,32 @@ def md(text):
     return text
 
 
-def card(header, included, skipped, repo_url, run_url, sandbox_url):
-    def line(pr, with_reason):
-        title = pr_title(pr["number"])
-        text = f"- [#{pr['number']}]({repo_url}/pull/{pr['number']}) "
-        text += md(title) if title else md(pr["branch"])
-        text += f" @ `{pr['sha']}`"
-        if with_reason and pr["reason"]:
-            text += f" - {md(pr['reason'])}"
-        return text
+def card(added, removed, repo_url, assembly, run_url, sandbox_url):
+    def line(number, tail):
+        title = pr_title(number)
+        text = f"- [#{number}]({repo_url}/pull/{number})"
+        if title:
+            text += " " + md(title)
+        return text + tail
 
     body = [
-        {"type": "TextBlock", "text": "Sandbox updated", "weight": "Bolder", "size": "Medium"},
-        {"type": "TextBlock", "text": md(header), "isSubtle": True, "spacing": "None", "wrap": True},
-        {"type": "TextBlock", "text": f"In the Sandbox now ({len(included)})", "weight": "Bolder",
-         "spacing": "Medium"},
-        {"type": "TextBlock", "wrap": True, "spacing": "Small",
-         "text": "\n".join(line(pr, False) for pr in included) or "Only `main`, no pull requests."},
+        {"type": "TextBlock", "text": "Sandbox changed", "weight": "Bolder", "size": "Medium"},
+        {"type": "TextBlock", "text": f"Assembly `{assembly}` is deployed.", "isSubtle": True,
+         "spacing": "None", "wrap": True},
     ]
-    if skipped:
+    if added:
         body += [
-            {"type": "TextBlock", "text": f"Left out ({len(skipped)})", "weight": "Bolder",
+            {"type": "TextBlock", "text": f"New in the Sandbox ({len(added)})", "weight": "Bolder",
              "spacing": "Medium"},
             {"type": "TextBlock", "wrap": True, "spacing": "Small",
-             "text": "\n".join(line(pr, True) for pr in skipped)},
+             "text": "\n".join(line(n, f" @ `{sha}`") for n, sha in added)},
+        ]
+    if removed:
+        body += [
+            {"type": "TextBlock", "text": f"Left the Sandbox ({len(removed)})", "weight": "Bolder",
+             "spacing": "Medium"},
+            {"type": "TextBlock", "wrap": True, "spacing": "Small",
+             "text": "\n".join(line(n, f" - {WHY.get(why, why)}") for n, why in removed)},
         ]
     actions = []
     if sandbox_url:
@@ -143,15 +134,20 @@ def main(argv):
         print("TEAMS_WEBHOOK_URL is not set - no Teams notification")
         return 0
 
-    sha = os.environ.get("DEPLOYED_SHA", "")
-    found = manifest(sha) if sha else None
-    if found is None:
-        print(f"commit '{sha}' is not a sandbox manifest - no Teams notification")
+    if os.environ.get("CHANGES_KNOWN", "1") == "0":
+        print("the previous state of the Sandbox could not be read - no Teams notification")
+        return 0
+
+    added = parse(os.environ.get("SANDBOX_ADDED", ""), "@")
+    removed = parse(os.environ.get("SANDBOX_REMOVED", ""), ":")
+    if not added and not removed:
+        print("no request came into the Sandbox or left it - no Teams notification")
         return 0
 
     repo_url = (os.environ.get("GITHUB_SERVER_URL", "https://github.com").rstrip("/") + "/"
                 + os.environ.get("GITHUB_REPOSITORY", ""))
-    payload = card(*found, repo_url, os.environ.get("RUN_URL", ""),
+    assembly = os.environ.get("DEPLOYED_SHA", "")[:7]
+    payload = card(added, removed, repo_url, assembly, os.environ.get("RUN_URL", ""),
                    os.environ.get("SANDBOX_URL", "").strip())
 
     if dry:
@@ -162,7 +158,7 @@ def main(argv):
                                      headers={"Content-Type": "application/json"}, method="POST")
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
-            print(f"posted to Teams ({response.status}): {len(found[1])} pull requests in the Sandbox")
+            print(f"posted to Teams ({response.status}): {len(added)} new, {len(removed)} left")
     except (urllib.error.URLError, OSError) as e:
         # The webhook URL is a secret; the error text from urllib does not include it.
         print(f"::warning::Teams notification failed: {e}")
